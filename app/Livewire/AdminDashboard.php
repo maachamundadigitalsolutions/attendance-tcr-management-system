@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Livewire;
+
+use Livewire\Component;
+
+class AdminDashboard extends Component
+{
+    public function render()
+    {
+        return view('livewire.admin-dashboardhboard')
+            ->layout('layouts.app'); // 👈 AdminLTE layout use karo
+    }
+}
