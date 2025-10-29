@@ -13,7 +13,8 @@
         {{-- Livewire Counter Component --}}
         @livewire('counter')
         <h1>Hello World</h1>
-        <a href="{{ route('login') }}">Go to Login</a>
+        <!-- <a href="{{ route('login') }}">Go to Login</a> -->
+        <a href="{{ route('login') }}" wire:navigate>Go to Login</a>
 
     </div>
 
