@@ -1,19 +1,14 @@
-namespace App\Http\Controllers;
+<?php
 
-use Illuminate\Routing\Controller as BaseController;
+namespace App\Http\Controllers\Api\v1;
 
-abstract class Controller extends   
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
 {
-    protected function success($data, $status = 200)
+    public function profile(Request $request)
     {
-        return response()->json(['success' => true, 'data' => $data], $status);
-    }
-
-    protected function error($message, $status = 400)
-    {
-        return response()->json(['success' => false, 'message' => $message], $status);
+        return $this->success($request->user());
     }
 }
-
-<!-- Pachī koi pan controller ma: -->
-<!-- return $this->success($user); -->

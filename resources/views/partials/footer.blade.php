@@ -1,3 +1,8 @@
-<footer class="main-footer text-center">
-  <strong>&copy; {{ date('Y') }} Team Task Tracker.</strong> All rights reserved.
+<!-- Main Footer -->
+<footer class="main-footer">
+  <strong>&copy; {{ date('Y') }} <a href="{{ url('/') }}">My Company</a>.</strong>
+  All rights reserved.
+  <div class="float-right d-none d-sm-inline-block">
+    <b>Version</b> 1.0.0
+  </div>
 </footer>
