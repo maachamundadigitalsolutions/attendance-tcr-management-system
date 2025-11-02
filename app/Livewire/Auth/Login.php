@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Livewire\Auth;
 
 use Livewire\Component;
@@ -6,13 +7,13 @@ use Illuminate\Support\Facades\Http;
 
 class Login extends Component
 {
-    public $login = '';
+    public $loginField = '';
     public $password = '';
 
     public function login()
     {
         $response = Http::post('http://127.0.0.1:8001/api/v1/login', [
-            'login'    => $this->login,
+            'login'    => $this->loginField,
             'password' => $this->password,
         ]);
 
@@ -21,9 +22,8 @@ class Login extends Component
             return redirect()->to('/dashboard');
         }
 
-        $this->addError('login', $response->json('message') ?? 'Login failed.');
+        $this->addError('loginField', $response->json('message') ?? 'Login failed.');
     }
-
 
     public function render()
     {
@@ -31,3 +31,4 @@ class Login extends Component
             ->layout('layouts.app');
     }
 }
+
