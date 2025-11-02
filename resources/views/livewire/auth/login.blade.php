@@ -7,14 +7,15 @@
     <div class="card-body login-card-body">
       <p class="login-box-msg">Sign in to start your session</p>
 
-      <form wire:submit.prevent="login">
+      <<form wire:submit.prevent="login">
         <div class="input-group mb-3">
-          <input type="email" wire:model="email" class="form-control" placeholder="Email">
+          {{-- Single field for Email OR User ID --}}
+          <input type="text" wire:model="login" class="form-control" placeholder="Email or User ID">
           <div class="input-group-append">
-            <div class="input-group-text"><span class="fas fa-envelope"></span></div>
+            <div class="input-group-text"><span class="fas fa-user"></span></div>
           </div>
         </div>
-        @error('email') <span class="text-danger">{{ $message }}</span> @enderror
+        @error('login') <span class="text-danger">{{ $message }}</span> @enderror
 
         <div class="input-group mb-3">
           <input type="password" wire:model="password" class="form-control" placeholder="Password">

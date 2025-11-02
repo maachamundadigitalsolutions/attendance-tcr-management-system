@@ -1,33 +1,33 @@
 <?php
 namespace App\Livewire\Auth;
-namespace App\Http\Livewire\Auth;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Http;
 
 class Login extends Component
 {
-    public $email, $password;
+    public $login = '';
+    public $password = '';
 
     public function login()
     {
-        $response = Http::post(url('/api/v1/login'), [
-            'email' => $this->email,
+        $response = Http::post('http://127.0.0.1:8001/api/v1/login', [
+            'login'    => $this->login,
             'password' => $this->password,
         ]);
 
         if ($response->successful()) {
-            $token = $response->json('token');
-            session(['api_token' => $token]); // store token in session
+            session(['api_token' => $response->json('token')]);
             return redirect()->to('/dashboard');
         }
 
-        $this->addError('email', 'Invalid credentials.');
+        $this->addError('login', $response->json('message') ?? 'Login failed.');
     }
+
 
     public function render()
     {
-        return view('livewire.auth.login')->layout('layouts.app');
+        return view('livewire.auth.login')
+            ->layout('layouts.app');
     }
 }
-

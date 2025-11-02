@@ -13,15 +13,5 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
-
-        // Role-based route
-        Route::get('/admin', function () {
-            return response()->json(['message' => 'Welcome Admin']);
-        })->middleware('role:admin');
-
-        // Permission-based route
-        Route::get('/dashboard', function () {
-            return response()->json(['message' => 'Dashboard Access']);
-        })->middleware('permission:view dashboard');
     });
 });

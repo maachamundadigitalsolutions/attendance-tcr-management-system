@@ -1,13 +1,8 @@
 <?php
-use App\Livewire\Auth\Login;
-use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
+use App\Livewire\Auth\Login;
 
 Route::get('/', Login::class)->name('login');
-Route::get('/dashboard', Dashboard::class)->middleware('auth')->name('dashboard');
+
+// Route::get('/dashboard', Dashboard::class)->middleware('auth')->name('dashboard');
 
