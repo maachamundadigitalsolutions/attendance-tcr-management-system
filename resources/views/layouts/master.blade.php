@@ -13,11 +13,12 @@
 <div class="wrapper">
 
   @include('partials.header')
-  @include('partials.sidebar')
+  @includeWhen(isset($user), 'partials.sidebar')
 
   <div class="content-wrapper">
-    @yield('content')
-  </div>
+  {{ $slot }}
+</div>
+
 
   @include('partials.footer')
 

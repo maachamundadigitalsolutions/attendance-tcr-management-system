@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Auth;
+namespace App\Livewire\Auth;   // 👈 This must be present and match the folder path
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Http;
@@ -12,7 +12,7 @@ class Login extends Component
 
     public function login()
     {
-        $response = Http::post('http://127.0.0.1:8001/api/v1/login', [
+        $response = Http::post(config('app.api_url') . '/v1/login', [
             'login'    => $this->loginField,
             'password' => $this->password,
         ]);
