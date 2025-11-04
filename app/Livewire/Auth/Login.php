@@ -10,17 +10,26 @@ class Login extends Component
     public $loginField = '';
     public $password = '';
 
+   
+
     public function login()
     {
         $response = Http::post(config('app.api_url') . '/v1/login', [
-            'login'    => $this->loginField,
+            'loginField'    => $this->loginField,
             'password' => $this->password,
         ]);
 
-        if ($response->successful()) {
-            session(['api_token' => $response->json('token')]);
-            return redirect()->to('/dashboard');
-        }
+
+     // 👇 Debug line
+    //    dd($response->status(), $response->json());
+
+
+
+     if ($response->successful()) {
+        session(['api_token' => $response->json('token')]);
+        session(['user' => $response->json('user')]);
+        return redirect()->to('/dashboard');
+    }
 
         $this->addError('loginField', $response->json('message') ?? 'Login failed.');
     }

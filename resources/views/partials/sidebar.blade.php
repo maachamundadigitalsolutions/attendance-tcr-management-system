@@ -16,7 +16,7 @@
           <li class="nav-item">
             <a href="/dashboard" class="nav-link" wire:navigate>
               <i class="nav-icon fas fa-user-shield"></i>
-              <p>Admin Panel</p>
+              <p>Admin Dashboard</p>
             </a>
           </li>
         @endif

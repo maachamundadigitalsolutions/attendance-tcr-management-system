@@ -11,17 +11,18 @@ class Users extends Component
     use WithPagination;
 
     public $search = '';
-    public $name, $email, $password;
+    public $name, $user_id, $password;
     public $editingUserId = null;
     
      // 👇 Add this line
     public $showModal = false;
 
-    protected $rules = [
-        'name'     => 'required|string|min:3',
-        'email'    => 'required|email|unique:users,email',
-        'password' => 'nullable|min:6',
-    ];
+        protected $rules = [
+            'user_id'  => 'required|digits_between:5,15|unique:users,user_id',
+            'name'     => 'required|string|min:3',
+            'password' => 'required|min:6',
+        ];
+
 
     public $user;
 
@@ -50,7 +51,7 @@ class Users extends Component
         $user = User::findOrFail($id);
         $this->editingUserId = $id;
         $this->name = $user->name;
-        $this->email = $user->email;
+        $this->user_id = $user->user_id;
         $this->password = '';
         $this->showModal = true;
     }
@@ -63,14 +64,14 @@ class Users extends Component
             $user = User::findOrFail($this->editingUserId);
             $user->update([
                 'name'  => $this->name,
-                'email' => $this->email,
+                'user_id' => $this->user_id,
                 // password only if filled
                 'password' => $this->password ? bcrypt($this->password) : $user->password,
             ]);
         } else {
             User::create([
                 'name'     => $this->name,
-                'email'    => $this->email,
+                'user_id'    => $this->user_id,
                 'password' => bcrypt($this->password),
             ]);
         }
@@ -87,7 +88,7 @@ class Users extends Component
 
     private function resetForm()
     {
-        $this->reset(['name', 'email', 'password', 'editingUserId']);
+        $this->reset(['name', 'user_id', 'password', 'editingUserId']);
     }
 
   public function render()
@@ -101,6 +102,8 @@ class Users extends Component
     }
 
 }
+
+
 
 
 
