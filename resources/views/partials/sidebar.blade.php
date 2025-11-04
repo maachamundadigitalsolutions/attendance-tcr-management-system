@@ -14,9 +14,27 @@
 
         @if(in_array('admin', $roles))
           <li class="nav-item">
-            <a href="/admin" class="nav-link">
+            <a href="/dashboard" class="nav-link" wire:navigate>
               <i class="nav-icon fas fa-user-shield"></i>
               <p>Admin Panel</p>
+            </a>
+          </li>
+        @endif
+        
+        @if(in_array('admin', $roles))
+          <li class="nav-item">
+            <a href="/users" class="nav-link" wire:navigate>
+              <i class="nav-icon fas fa-user-shield"></i>
+              <p>Users</p>
+            </a>
+          </li>
+        @endif
+        
+        @if(in_array('admin', $roles))
+          <li class="nav-item">
+            <a href="/roles" class="nav-link" wire:navigate>
+              <i class="nav-icon fas fa-user-shield"></i>
+              <p>Roles & permistion</p>
             </a>
           </li>
         @endif

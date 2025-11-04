@@ -12,12 +12,22 @@
     {{-- Livewire Styles --}}
     @livewireStyles
 </head>
-<body class="hold-transition login-page">
+<body class="hold-transition sidebar-mini layout-fixed">
 
     {{-- Page Content --}}
-    <div class="login-box">
-        {{ $slot }}
-    </div>
+  <div class="wrapper">
+
+  @include('partials.header')
+  @includeWhen(isset($user), 'partials.sidebar')
+
+  <div class="content-wrapper">
+  {{ $slot }}
+</div>
+
+
+  @include('partials.footer')
+
+</div>
 
     {{-- jQuery & Bootstrap --}}
     <script src="{{ asset('adminlte/plugins/jquery/jquery.min.js') }}"></script>
