@@ -34,7 +34,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 🔹 API middleware group
         $middleware->group('api', [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
@@ -46,7 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified'   => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
             'role'       => \Spatie\Permission\Middlewares\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
-            'auth.api'   => \App\Http\Middleware\EnsureApiToken::class,
+            'auth.api' => \App\Http\Middleware\EnsureApiToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -9,11 +9,14 @@ class EnsureApiToken
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!session()->has('api_token')) {
-            return redirect('/login');
+        $token = $request->bearerToken();
+
+        if (!$token) {
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
         return $next($request);
     }
 }
+
 

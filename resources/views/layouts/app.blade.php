@@ -19,9 +19,9 @@
     @include('partials.header')
 
     {{-- Sidebar only if user available --}}
-    @if(isset($user))
-        @include('partials.sidebar')
-    @endif
+  <div id="sidebar-container" style="display:none;">
+    @include('partials.sidebar')
+</div>
 
     {{-- Content Wrapper --}}
     <div class="content-wrapper">
@@ -43,6 +43,17 @@
 
 {{-- AdminLTE App --}}
 <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
+<script>
+    window.API_URL = "{{ env('API_URL') }}";
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const token = localStorage.getItem('api_token');
+    if (token) {
+        document.getElementById('sidebar-container').style.display = 'block';
+    }
+});
+</script>
 
 {{-- Livewire Scripts --}}
 @livewireScripts
