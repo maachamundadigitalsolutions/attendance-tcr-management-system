@@ -11,18 +11,24 @@ class Dashboard extends Component
     public $completion = 53;
     public $user;
 
-   public function mount()
+    public function mount()
     {
         $token = session('api_token');
 
-        $response = Http::withToken($token)->get(config('app.api_url').'/v1/user');
+        if (!$token) {
+            return redirect()->to('/login');
+        }
+
+        $response = \Http::withToken($token)->get(config('app.api_url').'/v1/user');
 
         if ($response->failed()) {
+            session()->forget('api_token');
             return redirect()->to('/login');
         }
 
         $this->user = $response->json();
     }
+
 
     public function render()
     {

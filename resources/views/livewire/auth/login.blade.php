@@ -1,3 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - {{ config('app.name') }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  {{-- AdminLTE CSS --}}
+  <link rel="stylesheet" href="{{ asset('adminlte/plugins/fontawesome-free/css/all.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('adminlte/dist/css/adminlte.min.css') }}">
+  @livewireStyles
+</head>
+<body class="hold-transition login-page">
+
+<div class="login-box">
 <div class="card">
     <div class="card-body login-card-body">
         <p class="login-box-msg">Sign in to start your session</p>
@@ -33,3 +48,15 @@
         </form>
     </div>
 </div>
+</div>
+
+{{-- Scripts --}}
+<script src="{{ asset('adminlte/plugins/jquery/jquery.min.js') }}"></script>
+<script src="{{ asset('adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
+@livewireScripts
+</body>
+</html>
+
+
+

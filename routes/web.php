@@ -15,3 +15,14 @@ Route::get('/login', Login::class)->name('login');
 Route::get('/dashboard', Dashboard::class)->name('dashboard');
 
 Route::get('/users', Users::class)->name('users');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', Login::class)->name('login');
+});
+
+Route::middleware('auth.api')->group(function () {
+    Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/users', Users::class)->name('users');
+});
+
+
