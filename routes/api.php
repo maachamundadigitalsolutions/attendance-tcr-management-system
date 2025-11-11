@@ -11,7 +11,10 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('/user', [AuthController::class, 'me']);
+        Route::get('/me', [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
+
+        // ✅ Add this
+        Route::get('/users', [UserController::class, 'index']);
     });
 });

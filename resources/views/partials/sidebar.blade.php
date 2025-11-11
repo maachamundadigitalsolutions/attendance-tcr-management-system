@@ -7,46 +7,27 @@
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
 
-        @php
-          $roles = $user['roles'] ?? [];
-          $perms = $user['permissions'] ?? [];
-        @endphp
+        {{-- Admin role items --}}
+        <li class="nav-item" data-role="admin" style="display:none;">
+          <a href="/dashboard" class="nav-link" wire:navigate>
+            <i class="nav-icon fas fa-user-shield"></i>
+            <p>Admin Dashboard</p>
+          </a>
+        </li>
 
-        @if(in_array('admin', $roles))
-          <li class="nav-item">
-            <a href="/dashboard" class="nav-link" wire:navigate>
-              <i class="nav-icon fas fa-user-shield"></i>
-              <p>Admin Dashboard</p>
-            </a>
-          </li>
-        @endif
-        
-        @if(in_array('admin', $roles))
-          <li class="nav-item">
-            <a href="/users" class="nav-link" wire:navigate>
-              <i class="nav-icon fas fa-user-shield"></i>
-              <p>Users</p>
-            </a>
-          </li>
-        @endif
-        
-        @if(in_array('admin', $roles))
-          <li class="nav-item">
-            <a href="/roles" class="nav-link" wire:navigate>
-              <i class="nav-icon fas fa-user-shield"></i>
-              <p>Roles & permistion</p>
-            </a>
-          </li>
-        @endif
+        <li class="nav-item" data-role="admin" style="display:none;">
+          <a href="/users" class="nav-link" wire:navigate>
+            <i class="nav-icon fas fa-users"></i>
+            <p>Users</p>
+          </a>
+        </li>
 
-        @if(in_array('view dashboard', $perms))
-          <li class="nav-item">
-            <a href="/dashboard" class="nav-link">
-              <i class="nav-icon fas fa-tachometer-alt"></i>
-              <p>Dashboard</p>
-            </a>
-          </li>
-        @endif
+        <li class="nav-item" data-role="admin" style="display:none;">
+          <a href="/roles" class="nav-link" wire:navigate>
+            <i class="nav-icon fas fa-key"></i>
+            <p>Roles & Permissions</p>
+          </a>
+        </li>
 
       </ul>
     </nav>

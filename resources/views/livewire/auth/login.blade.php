@@ -12,7 +12,7 @@
 </head>
 <body class="hold-transition login-page">
 
-<div class="login-box">
+<div class="login-box" id="loginBox" style="display:none;">
   <div class="card">
     <div class="card-body login-card-body">
       <p class="login-box-msg">Sign in to start your session</p>
@@ -55,32 +55,43 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
 <script>
-// document.addEventListener("DOMContentLoaded", function() {
-//     const token = localStorage.getItem('api_token');
-//     if (token) {
-//         axios.get("http://127.0.0.1:8000/api/v1/user", {
-//             headers: {
-//                 "Authorization": "Bearer " + token,
-//                 "Accept": "application/json"
-//             }
-//         })
-//         .then(res => {
-//             // Token valid → redirect to dashboard
-//             window.location.href = "{{ route('dashboard') }}";
-//         })
-//         .catch(err => {
-//             // Token invalid → clear and stay on login
-//             localStorage.removeItem('api_token');
-//             localStorage.removeItem('user');
-//         });
-//     }
-// });
+  axios.defaults.baseURL = 'http://127.0.0.1:8000/api/v1';
+  axios.defaults.headers.common['Accept'] = 'application/json';
 
-// Existing loginForm submit code niche j rahe
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+  const token = localStorage.getItem('api_token');
+
+  if (token) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    axios.get('/me').then(res => {
+      // ✅ Already logged in → redirect to dashboard
+        //   const token = res.data.token;
+        // const user  = res.data.user;
+        // const roles = res.data.roles;
+        // const permissions = res.data.permissions;
+
+        // Save to localStorage
+        // localStorage.setItem('api_token', token);
+        // localStorage.setItem('user', JSON.stringify(user));
+        // localStorage.setItem('roles', JSON.stringify(roles));
+        // localStorage.setItem('permissions', JSON.stringify(permissions));
+
+        // Redirect to dashboard
+        window.location.href = "{{ route('dashboard') }}";
+    }).catch(() => {
+      // ❌ Token invalid → clear and show login form
+      localStorage.clear();
+      document.getElementById('loginBox').style.display = 'block';
+    });
+  } else {
+    // ❌ No token → show login form
+    document.getElementById('loginBox').style.display = 'block';
+  }
+
+  // Login form submit
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    axios.post("http://127.0.0.1:8000/api/v1/login", {
+    axios.post("/login", {
         loginField: document.getElementById('email').value,
         password: document.getElementById('password').value
     })
@@ -96,9 +107,6 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         localStorage.setItem('roles', JSON.stringify(roles));
         localStorage.setItem('permissions', JSON.stringify(permissions));
 
-        console.log("Login success, redirecting...");
-        console.log("Saved token:", localStorage.getItem('api_token'));
-
         // Redirect to dashboard
         window.location.href = "{{ route('dashboard') }}";
     })
@@ -106,9 +114,8 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         console.error(err);
         alert(err.response?.data?.message || "Login failed");
     });
-});
+  });
 </script>
-
 
 @livewireScripts
 </body>
