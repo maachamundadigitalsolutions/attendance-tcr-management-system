@@ -5,7 +5,7 @@ use App\Livewire\Auth\Login;
 use App\Livewire\Dashboard;
 use App\Livewire\Users;
 use App\Livewire\Roles;
-
+use App\Livewire\Attendances;
 
 // Homepage (optional)
 Route::get('/', function () {
@@ -16,13 +16,15 @@ Route::get('/', function () {
 Route::get('/login', Login::class)->name('login');
 Route::get('/dashboard', Dashboard::class)->name('dashboard');
 
-Route::get('/users', Users::class)->name('users');
-Route::get('/roles', Roles::class)->name('roles');
+Route::get('/user-management', Users::class)->name('users');
+Route::get('/roles-permissions', Roles::class)->name('roles');
+Route::get('/attendances-management', Attendances::class)->name('attendances');
 
 
-Route::middleware('guest')->group(function () {
-    Route::get('/login', Login::class)->name('login');
-});
+
+// Route::middleware('guest')->group(function () {
+//     Route::get('/login', Login::class)->name('login');
+// });
 
 // Route::middleware('auth.api')->group(function () {
 //     Route::get('/dashboard', Dashboard::class)->name('dashboard');

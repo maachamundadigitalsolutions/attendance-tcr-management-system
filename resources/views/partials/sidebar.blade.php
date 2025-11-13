@@ -5,29 +5,46 @@
 
   <div class="sidebar">
     <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+      <ul class="nav nav-pills nav-sidebar flex-column" role="menu">
 
-        {{-- Admin role items --}}
-        <li class="nav-item" data-role="admin" style="display:none;">
+        <li class="nav-item">
           <a href="/dashboard" class="nav-link" wire:navigate>
             <i class="nav-icon fas fa-user-shield"></i>
-            <p>Admin Dashboard</p>
+            <p>Dashboard</p>
           </a>
         </li>
 
         <li class="nav-item" data-role="admin" style="display:none;">
-          <a href="/users" class="nav-link" wire:navigate>
+          <a href="/user-management" class="nav-link" wire:navigate>
             <i class="nav-icon fas fa-users"></i>
-            <p>Users</p>
+            <p>User Management</p>
           </a>
         </li>
 
         <li class="nav-item" data-role="admin" style="display:none;">
-          <a href="/roles" class="nav-link" wire:navigate>
+          <a href="/roles-permissions" class="nav-link" wire:navigate>
             <i class="nav-icon fas fa-key"></i>
             <p>Roles & Permissions</p>
           </a>
         </li>
+       <li class="nav-item" 
+          data-role="admin" 
+          data-permission="view attendances" 
+          style="display:none;">
+        <a href="/attendances-management" class="nav-link" wire:navigate>
+          <i class="nav-icon fas fa-id-badge"></i>
+          <p>Attendances</p>
+        </a>
+      </li>
+            <li class="nav-item" 
+          data-role="admin" 
+          data-permission="view attendances" 
+          style="display:none;">
+        <a href="/attendances-management" class="nav-link" wire:navigate>
+          <i class="nav-icon fas fa-id-badge"></i>
+          <p>TCR Management</p>
+        </a>
+      </li>
 
       </ul>
     </nav>

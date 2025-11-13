@@ -10,44 +10,57 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         // Create default roles
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $editorRole = Role::firstOrCreate(['name' => 'editor']);
+        $adminRole    = Role::firstOrCreate(['name' => 'admin']);
+        $admin2Role   = Role::firstOrCreate(['name' => 'admin2']);
+        $admin3Role   = Role::firstOrCreate(['name' => 'admin3']);
+        $engineerRole = Role::firstOrCreate(['name' => 'engineer']);
 
         // Create permissions
-        $editArticles = Permission::firstOrCreate(['name' => 'edit articles']);
-        $deleteArticles = Permission::firstOrCreate(['name' => 'delete articles']);
+        $viewAttendances   = Permission::firstOrCreate(['name' => 'view attendances']);
+        $editAttendances   = Permission::firstOrCreate(['name' => 'edit attendances']);
+        $deleteAttendances = Permission::firstOrCreate(['name' => 'delete attendances']);
 
-        // Create a admin user
-        $user = User::factory()->create([
-            'name'     => 'Admin',
-            'user_id'  => 'admin001',   // optional, admin ne pan user_id aapi shako
-            'email'    => 'admin@example.com',
-            'password' => Hash::make('password123'),
-        ]);
+        // Assign permissions to roles
+        $adminRole->syncPermissions([$viewAttendances, $editAttendances, $deleteAttendances]);
+        $admin2Role->syncPermissions([$viewAttendances, $editAttendances]);
+        $admin3Role->syncPermissions([$viewAttendances, $editAttendances]);
+        $engineerRole->syncPermissions([$viewAttendances]);
 
-        // 👤 Normal users (user_id thi login)
-        User::create([
-            'name'     => 'Ramesh',
-            'user_id'  => '8486168659',
-            'email'    => null,
-            'password' => Hash::make('secret123'),
-        ]);
+        // Create or update admin user
+        $adminUser = User::updateOrCreate(
+            ['user_id' => 'admin001'], // unique field condition
+            [
+                'name'     => 'Admin',
+                'email'    => 'admin@example.com',
+                'password' => Hash::make('password123'),
+            ]
+        );
 
-        User::create([
-            'name'     => 'Suresh',
-            'user_id'  => '8486168660',
-            'email'    => null,
-            'password' => Hash::make('secret123'),
-        ]);
+        // Normal users
+        $ramesh = User::updateOrCreate(
+            ['user_id' => '8486168659'],
+            [
+                'name'     => 'Ramesh',
+                'email'    => null,
+                'password' => Hash::make('secret123'),
+            ]
+        );
 
-        // Assign role and permission
-        $user->assignRole($adminRole);
-        $user->givePermissionTo($editArticles);
+        $suresh = User::updateOrCreate(
+            ['user_id' => '8486168660'],
+            [
+                'name'     => 'Suresh',
+                'email'    => null,
+                'password' => Hash::make('secret123'),
+            ]
+        );
+
+        // Assign roles
+        $adminUser->assignRole($adminRole);
+        $ramesh->assignRole($engineerRole);
+        $suresh->assignRole($engineerRole);
     }
 }

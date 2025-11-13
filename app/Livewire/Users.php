@@ -7,9 +7,7 @@ class Users extends Component
 {
     public function render()
     {
-        // We don’t fetch users here because we’re using Axios on the frontend
         return view('livewire.users')
-          ->layout('layouts.app');
-
+            ->layout('layouts.app');
     }
 }
