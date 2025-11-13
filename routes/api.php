@@ -16,8 +16,17 @@ Route::prefix('v1')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
 
-        // ✅ Add this
-        Route::get('/user-list', [UserController::class, 'index']);
+           // ✅ Add this     
         Route::get('/roles', [RoleController::class, 'index']);
+            // User list
+        Route::get('/user-list', [UserController::class, 'index']);
+        // Create new user
+        Route::post('/users', [UserController::class, 'store']);
+        // Show single user
+        Route::get('/users/{id}', [UserController::class, 'show']);
+        // Update user
+        Route::put('/users/{id}', [UserController::class, 'update']);
+        // Delete user
+        Route::delete('/users/{id}', [UserController::class, 'destroy']);
     });
 });
