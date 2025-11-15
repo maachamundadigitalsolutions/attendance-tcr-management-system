@@ -1,6 +1,6 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
   <a href="/" class="brand-link">
-    <span class="brand-text font-weight-light">AdminLTE</span>
+    <span class="brand-text font-weight-light">TeamTracker</span>
   </a>
 
   <div class="sidebar">
@@ -29,7 +29,7 @@
         </li>
        <li class="nav-item" 
           data-role="admin" 
-          data-permission="view attendances" 
+          data-permission="attendance-mark" 
           style="display:none;">
         <a href="/attendances-management" class="nav-link" wire:navigate>
           <i class="nav-icon fas fa-id-badge"></i>
