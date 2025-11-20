@@ -17,9 +17,10 @@ return new class extends Migration
             $table->date('date');
             $table->enum('status', ['present','absent','leave']);
             $table->string('remarks')->nullable();
-            $table->string('photo_path')->nullable();
+            $table->string('photo_path'); // 👈 compulsory, no nullable
             $table->timestamps();
         });
+
 
     }
 

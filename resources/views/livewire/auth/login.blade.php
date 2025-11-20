@@ -52,10 +52,16 @@
 <script src="{{ asset('adminlte/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> -->
+ 
+ {{-- Custom axios setup --}}
+<script src="/js/axios.min.js"></script>
+<script src="{{ asset('js/axios-setup.js') }}"></script>
 
 <script>
-  axios.defaults.baseURL = 'http://127.0.0.1:8000/api/v1';
+  // axios.defaults.baseURL = 'http://127.0.0.1:8000/api/v1';
+  axios.defaults.baseURL = 'http://192.168.1.27:8001/api/v1';
+
   axios.defaults.headers.common['Accept'] = 'application/json';
 
   const token = localStorage.getItem('api_token');

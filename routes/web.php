@@ -6,6 +6,7 @@ use App\Livewire\Dashboard;
 use App\Livewire\Users;
 use App\Livewire\Roles;
 use App\Livewire\Attendances;
+use App\Livewire\TCR;
 
 // Homepage (optional)
 Route::get('/', function () {
@@ -19,6 +20,7 @@ Route::get('/dashboard', Dashboard::class)->name('dashboard');
 Route::get('/user-management', Users::class)->name('users');
 Route::get('/roles-permissions', Roles::class)->name('roles');
 Route::get('/attendances-management', Attendances::class)->name('attendances');
+Route::get('/tcr-management', TCR::class)->name('tcr');
 
 
 

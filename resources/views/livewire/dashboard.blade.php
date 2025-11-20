@@ -5,19 +5,24 @@
     <button onclick="logout()" class="btn btn-danger mt-3">Logout</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+@push('scripts')
+<script src="/js/axios.min.js"></script>
 <script src="{{ asset('js/axios-setup.js') }}"></script>
 
 <script>
 function loadUserData() {
     const token = localStorage.getItem('api_token');
+    console.log('token', token);
+    
     if (!token) {
-        window.location.href = "/login";
+        // window.location.href = "/login";
         return;
     }
 
     axios.get('/me')
       .then(res => {
+        console.log('dashboard me', res);
+        
         document.getElementById('username').innerText = res.data.user?.name;
         document.getElementById('roles').innerText = res.data.roles.join(', ');
         document.getElementById('permissions').innerText = res.data.permissions.join(', ');
@@ -26,8 +31,8 @@ function loadUserData() {
         console.error("Error fetching user data:", err);
         if (err.response?.status === 401) {
           alert("Login expired, please login again.");
-          localStorage.clear();
-          window.location.href = "/login";
+          // localStorage.clear();
+          // window.location.href = "/login";
         }
       });
     
@@ -35,11 +40,11 @@ function loadUserData() {
 }
 
 // ✅ Run on first load
-// document.addEventListener("DOMContentLoaded", () => {
-//     if (window.location.pathname.includes('dashboard')) {
-//         loadUserData();
-//     }
-// });
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.pathname.includes('dashboard')) {
+        loadUserData();
+    }
+});
 
 // ✅ Run again when Livewire navigates (SPA navigation)
 document.addEventListener("livewire:navigated", () => {
@@ -59,3 +64,4 @@ function logout() {
       });
 }
 </script>
+@endpush

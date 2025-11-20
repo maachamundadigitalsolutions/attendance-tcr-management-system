@@ -11,27 +11,30 @@ class UserController extends Controller
 {
     public function index()
     {
-        return response()->json(User::paginate(10));
+        $users = User::with('roles')->paginate(10);
+
+        return response()->json($users);
     }
 
+
   public function store(Request $request)
-{
-        $validated = $request->validate([
-            'user_id'  => 'required|digits_between:5,15|unique:users,user_id',
-            'name'     => 'required|string|min:3',
-            'password' => 'required|min:6',
-        ]);
+    {
+            $validated = $request->validate([
+                'user_id'  => 'required|digits_between:5,15|unique:users,user_id',
+                'name'     => 'required|string|min:3',
+                'password' => 'required|min:6',
+            ]);
 
-        $user = User::create([
-            'name'     => $validated['name'],
-            'user_id'  => $validated['user_id'],
-            'email'    => null,
-            'password' => Hash::make($validated['password']),
-        ]);
+            $user = User::create([
+                'name'     => $validated['name'],
+                'user_id'  => $validated['user_id'],
+                'email'    => null,
+                'password' => Hash::make($validated['password']),
+            ]);
 
-        return response()->json($user, 201);
+            return response()->json($user, 201);
 
-}
+    }
 
 
     public function show($id)
@@ -63,4 +66,11 @@ class UserController extends Controller
         User::findOrFail($id)->delete();
         return response()->json(['message' => 'User deleted successfully']);
     }
+
+    public function engineers()
+    {
+        $engineers = User::role('engineer')->get(['id','name','user_id']);
+        return response()->json($engineers);
+    }
+        
 }

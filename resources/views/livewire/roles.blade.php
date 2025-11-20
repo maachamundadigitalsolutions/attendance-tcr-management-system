@@ -13,6 +13,11 @@
 
 <!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="{{ asset('js/axios-setup.js') }}"></script> -->
+
+{{-- Custom axios setup --}}
+<script src="/js/axios.min.js"></script>
+<script src="{{ asset('js/axios-setup.js') }}"></script>
+
 <script>
 
  function loadRoles() {

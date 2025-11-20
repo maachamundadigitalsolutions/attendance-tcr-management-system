@@ -1,7 +1,8 @@
 // axios-setup.js
 
 // Base URL for your API
-axios.defaults.baseURL = 'http://127.0.0.1:8001/api/v1';
+// axios.defaults.baseURL = 'http://127.0.0.1:8001/api/v1';
+axios.defaults.baseURL = 'http://192.168.1.27:8001/api/v1';
 axios.defaults.headers.common['Accept'] = 'application/json';
 
 // Interceptor: attach token automatically
