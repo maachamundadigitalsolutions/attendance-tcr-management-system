@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
@@ -10,35 +9,30 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+        public function login(Request $request)
     {
-        // Validate input: one identifier + password
         $request->validate([
-            'loginField'    => 'required', // can be email or user_id
-            'password' => 'required',
+            'loginField' => 'required',
+            'password'   => 'required',
         ]);
 
-        $login = $request->input('loginField');
+        $login    = $request->input('loginField');
         $password = $request->input('password');
 
-        // Detect type: email vs numeric ID
         if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
-            // Email login (admin or anyone with email)
-            if (!Auth::attempt(['email' => $login, 'password' => $password])) {
+            // Email login via web guard
+            if (!Auth::guard('web')->attempt(['email' => $login, 'password' => $password])) {
                 return response()->json(['message' => 'Invalid credentials'], 401);
             }
-            $user = Auth::user();
+            $user = Auth::guard('web')->user();
         } else {
-            // Numeric ID login (e.g., user_id)
-            // Choose the correct column name; examples: 'user_id' or 'email'
-            $user = User::where('user_id', $login)->first(); // or ->where('user_id', $login)
+            // Numeric ID login
+            $user = User::where('user_id', $login)->first();
 
             if (!$user || !Hash::check($password, $user->password)) {
                 return response()->json(['message' => 'Invalid credentials'], 401);
             }
-
-            // Log the user into the current session context (optional for API)
-            Auth::login($user);
+            // Optional: Auth::login($user);
         }
 
         // Issue Sanctum token
@@ -51,6 +45,7 @@ class AuthController extends Controller
             'token'       => $token,
         ]);
     }
+
     
     public function register(Request $request) {
         $data = $request->validate([

@@ -2,11 +2,12 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-
+use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
+    // List all roles with permissions
     public function index()
     {
         $roles = Role::with('permissions')->get()->map(function ($role) {
@@ -17,9 +18,78 @@ class RoleController extends Controller
             ];
         });
 
+        return response()->json(['roles' => $roles]);
+    }
+
+    // Show single role with permissions
+    public function show($id)
+    {
+        $role = Role::with('permissions')->findOrFail($id);
+
         return response()->json([
-            'roles' => $roles
+            'role' => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'permissions' => $role->permissions->pluck('name')->toArray(),
+            ]
         ]);
     }
-}
 
+    // Create new role with selected permissions
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|unique:roles',
+            'permissions' => 'array'
+        ]);
+
+        // 👇 guard_name explicitly set to "api"
+        $role = Role::create([
+            'name' => $request->name,
+            'guard_name' => 'api',
+        ]);
+
+        $role->syncPermissions($request->permissions ?? []);
+
+        return response()->json([
+            'message' => 'Role created successfully',
+            'role' => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'permissions' => $role->permissions->pluck('name')->toArray(),
+            ]
+        ]);
+    }
+
+    // Update role permissions
+    public function update(Request $request, $id)
+    {
+        $role = Role::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|unique:roles,name,' . $role->id,
+            'permissions' => 'array'
+        ]);
+
+        $role->update(['name' => $request->name]);
+        $role->syncPermissions($request->permissions ?? []);
+
+        return response()->json([
+            'message' => 'Role updated successfully',
+            'role' => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'permissions' => $role->permissions->pluck('name')->toArray(),
+            ]
+        ]);
+    }
+
+    // Delete role
+    public function destroy($id)
+    {
+        $role = Role::findOrFail($id);
+        $role->delete();
+
+        return response()->json(['message' => 'Role deleted successfully']);
+    }
+}

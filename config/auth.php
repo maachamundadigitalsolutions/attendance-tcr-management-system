@@ -36,16 +36,11 @@ return [
     */
 
     'guards' => [
-    // 'web' => [
-    //     'driver' => 'session', // ❌ Not used
-    //     'provider' => 'users',
-    // ],
-    // ✅ Only API guard, no session driver
     'api' => [
-        'driver' => 'sanctum', // ✅ Use this
+        'driver' => 'sanctum',   // 👈 driver "sanctum" raheshe
         'provider' => 'users',
+        ],
     ],
-],
 
     /*
     |--------------------------------------------------------------------------
