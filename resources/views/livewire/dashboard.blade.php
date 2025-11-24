@@ -6,8 +6,6 @@
 </div>
 
 @push('scripts')
-<script src="/js/axios.min.js"></script>
-<script src="{{ asset('js/axios-setup.js') }}"></script>
 
 <script>
   
@@ -26,8 +24,6 @@ function loadUserData() {
 
     axios.get('/me')
       .then(res => {
-        console.log('dashboard me', res);
-        
         document.getElementById('username').innerText = res.data.user?.name;
         document.getElementById('roles').innerText = res.data.roles.join(', ');
         document.getElementById('permissions').innerText = res.data.permissions.join(', ');
