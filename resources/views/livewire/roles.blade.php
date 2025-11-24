@@ -53,23 +53,27 @@
 </div>
 
 @push('scripts')
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+let rolesTable; // global reference
+
 function initRolesTable() {
-  const table = $("#rolesTable").DataTable({
-    destroy: true, // allow re-init when Livewire reloads
-    responsive: true,
-    autoWidth: false,
-    buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
-  });
-  table.buttons().container().appendTo('#rolesTable_wrapper .col-md-6:eq(0)');
+  if (!rolesTable) {
+    rolesTable = $("#rolesTable").DataTable({
+      responsive: true,
+      autoWidth: false,
+      buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
+    });
+    rolesTable.buttons().container().appendTo('#rolesTable_wrapper .col-md-6:eq(0)');
+  }
 
   // ✅ Load roles and build permissions list
   axios.get('/roles').then(res => {
-    console.log('resssss', res);
-    
-    table.clear();
+    rolesTable.clear();
     res.data.roles.forEach(r => {
-      table.row.add([
+      rolesTable.row.add([
         r.id,
         r.name,
         r.permissions.join(', '),
@@ -77,7 +81,7 @@ function initRolesTable() {
          <button class="btn btn-danger btn-sm deleteBtn" data-id="${r.id}">Delete</button>`
       ]);
     });
-    table.draw(false);
+    rolesTable.draw(false);
 
     // Build unique permissions list
     const allPerms = [...new Set(res.data.roles.flatMap(r => r.permissions))];
@@ -92,71 +96,109 @@ function initRolesTable() {
       `);
     });
   });
+}
 
-  // ✅ Handle form submit
-  document.getElementById('roleForm').addEventListener('submit', function(e) {
+
+// ✅ Handle form submit
+document.addEventListener('submit', function(e) {
+  if (e.target && e.target.id === 'roleForm') {
     e.preventDefault();
-    const formData = new FormData(this);
+    const formData = new FormData(e.target);
     const payload = {
       name: formData.get('name'),
       permissions: formData.getAll('permissions[]')
     };
     const roleId = formData.get('role_id');
 
-    if (roleId) {
-      axios.put(`/roles/${roleId}`, payload)
-        .then(() => Livewire.emit('refreshComponent'))
-        .catch(err => {
-          if (err.response && err.response.data.errors) {
-            alert(err.response.data.errors.name[0]);
-          }
-        });
-    } else {
-      axios.post('/roles', payload)
-        .then(() => Livewire.emit('refreshComponent'))
-        .catch(err => {
-          if (err.response && err.response.data.errors) {
-            alert(err.response.data.errors.name[0]);
-          }
-        });
-    }
-  });
+    const request = roleId
+      ? axios.put(`/roles/${roleId}`, payload)
+      : axios.post('/roles', payload);
 
-  // ✅ Edit role
-  $('#rolesTable').on('click', '.editBtn', function () {
-    const id = $(this).data('id');
-    axios.get(`/roles/${id}`).then(res => {
-      const role = res.data.role;
-      document.getElementById('role_id').value = role.id;
-      document.getElementById('role_name').value = role.name;
+    request.then(() => {
+      $('#roleModal').modal('hide');   // close modal
+      initRolesTable();                // reload table
 
-      document.querySelectorAll('#permissionsList input[type=checkbox]').forEach(cb => cb.checked = false);
-      role.permissions.forEach(perm => {
-        const checkbox = document.querySelector(`[value="${perm}"]`);
-        if (checkbox) checkbox.checked = true;
+      // ✅ Show success toast
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: roleId ? 'Role updated successfully!' : 'Role created successfully!',
+        showConfirmButton: false,
+        timer: 3000
       });
-
-      $('#roleModal').modal('show');
+    }).catch(err => {
+      console.error('Role save error:', err);
+      if (err.response?.data?.errors?.name) {
+        alert(err.response.data.errors.name[0]);
+      } else {
+        alert('Failed to save role');
+      }
     });
-  });
-
-  // ✅ Delete role
-  $('#rolesTable').on('click', '.deleteBtn', function () {
-    const id = $(this).data('id');
-    if (confirm("Delete this role?")) {
-      axios.delete(`/roles/${id}`).then(() => Livewire.emit('refreshComponent'));
-    }
-  });
-}
-
-// ✅ Livewire hook
-document.addEventListener("livewire:load", () => {
-  initRolesTable();
+  }
 });
 
-// Optional: re-init when Livewire component refreshes
+// ✅ Edit role
+$('#rolesTable').on('click', '.editBtn', function () {
+  const id = $(this).data('id');
+  axios.get(`/roles/${id}`).then(res => {
+    const role = res.data.role;
+    document.getElementById('role_id').value = role.id;
+    document.getElementById('role_name').value = role.name;
+
+    document.querySelectorAll('#permissionsList input[type=checkbox]').forEach(cb => cb.checked = false);
+    role.permissions.forEach(perm => {
+      const checkbox = document.querySelector(`[value="${perm}"]`);
+      if (checkbox) checkbox.checked = true;
+    });
+
+    $('#roleModal').modal('show');
+  });
+});
+
+// ✅ Delete role
+$('#rolesTable').on('click', '.deleteBtn', function () {
+  const id = $(this).data('id');
+  if (confirm("Delete this role?")) {
+    axios.delete(`/roles/${id}`).then(() => {
+      initRolesTable();
+
+      // ✅ Show delete toast
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Role deleted successfully!',
+        showConfirmButton: false,
+        timer: 3000
+      });
+    });
+  }
+});
+
+// ✅ Reset form when modal closes
+$('#roleModal').on('hidden.bs.modal', function () {
+  document.getElementById('roleForm').reset();
+  document.getElementById('role_id').value = '';
+  document.querySelectorAll('#permissionsList input[type=checkbox]').forEach(cb => cb.checked = false);
+});
+
+// ✅ Livewire hooks
+document.addEventListener("livewire:load", () => {
+   if (window.location.pathname.includes('roles-permissions')) {
+          initRolesTable();
+    }
+ 
+});
+document.addEventListener('livewire:navigated',()=>{
+   if (window.location.pathname.includes('roles-permissions')) {
+          initRolesTable();
+    }
+});
 Livewire.on('refreshComponent', () => {
-  initRolesTable();
+ if (window.location.pathname.includes('roles-permissions')) {
+          initRolesTable();
+    }
 });
 </script>
 @endpush

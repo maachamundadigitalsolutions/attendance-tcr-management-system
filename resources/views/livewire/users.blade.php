@@ -22,15 +22,15 @@
             <input type="hidden" id="editId">
             <div class="form-group">
               <label>Name</label>
-              <input type="text" id="name" class="form-control">
+              <input type="text" id="name" class="form-control" autocomplete="name">
             </div>
             <div class="form-group">
               <label>User ID</label>
-              <input type="text" id="user_id" class="form-control">
+              <input type="text" id="user_id" class="form-control" autocomplete="username">
             </div>
             <div class="form-group">
               <label>Password</label>
-              <input type="password" id="password" class="form-control">
+              <input type="password" id="password" class="form-control" autocomplete="current-password">
             </div>
           </div>
           <div class="modal-footer">
@@ -43,18 +43,16 @@
   </div>
 </div>
 
-@script
-<script>
-  // Load users when navigated
-  document.addEventListener('livewire:navigated', loadUsers);
+@push('scripts')
 
+<script>
   function loadUsers() {
     const tbody = document.getElementById('users-table');
-    if (!tbody) return; // safety check
+    if (!tbody) return;
 
     axios.get('/user-list').then(res => {
       tbody.innerHTML = '';
-      res.data.data.forEach(u => {
+      (res.data?.data || []).forEach(u => {
         tbody.innerHTML += `
           <tr>
             <td>${u.id}</td>
@@ -66,29 +64,27 @@
             </td>
           </tr>`;
       });
-    })
-    .catch(err => console.error("Error fetching roles:", err));
+    }).catch(err => console.error("Error fetching users:", err));
   }
 
-  // ✅ Define function globally so button works
   window.openCreateModal = function() {
-    document.getElementById('editId').value = '';
-    document.getElementById('name').value = '';
-    document.getElementById('user_id').value = '';
-    document.getElementById('password').value = '';
+    ['editId','name','user_id','password'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
     $('#userModal').modal('show');
   }
 
   window.editUser = function(id) {
     axios.get(`/users/${id}`).then(res => {
       const u = res.data;
+      if (!u) return;
       document.getElementById('editId').value = u.id;
       document.getElementById('name').value = u.name;
       document.getElementById('user_id').value = u.user_id;
       document.getElementById('password').value = '';
       $('#userModal').modal('show');
-    })
-    .catch(err => console.error("Error fetching roles:", err));
+    }).catch(err => console.error("Error fetching user:", err));
   }
 
   document.getElementById('userForm').addEventListener('submit', function(e) {
@@ -100,23 +96,48 @@
       password: document.getElementById('password').value
     };
 
-    if (id) {
-      axios.put(`/users/${id}`, payload).then(() => {
-        $('#userModal').modal('hide');
-        loadUsers();
+    const request = id ? axios.put(`/users/${id}`, payload) : axios.post('/users', payload);
+
+    request.then(() => {
+      $('#userModal').modal('hide');
+      loadUsers();
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: id ? 'User updated successfully!' : 'User created successfully!',
+        showConfirmButton: false,
+        timer: 3000
       });
-    } else {
-      axios.post('/users', payload).then(() => {
-        $('#userModal').modal('hide');
-        loadUsers();
-      });
-    }
+    }).catch(err => console.error("Error saving user:", err));
   });
 
   window.deleteUser = function(id) {
     if (confirm("Delete this user?")) {
-      axios.delete(`/users/${id}`).then(() => loadUsers());
+      axios.delete(`/users/${id}`).then(() => {
+        loadUsers();
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'User deleted successfully!',
+          showConfirmButton: false,
+          timer: 3000
+        });
+      });
     }
   }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.pathname.includes('user-management')) {
+      loadUsers();
+    }
+  });
+
+  document.addEventListener('livewire:navigated', () => {
+    if (window.location.pathname.includes('user-management')) {
+      loadUsers();
+    }
+  });
 </script>
-@endscript
+@endpush

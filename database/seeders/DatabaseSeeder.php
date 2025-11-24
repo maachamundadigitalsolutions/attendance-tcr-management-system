@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
         // Assign permissions to roles
         $adminRole->syncPermissions([
             $markAttendance, $viewAttendances, $deleteAttendance,
-            $tcrAssign, $tcrViewAll, $tcrVerify, $tcrDelete
+            $tcrAssign, $tcrViewAll, $tcrVerify, $tcrDelete, $tcrUse
         ]);
 
         $admin2Role->syncPermissions([
