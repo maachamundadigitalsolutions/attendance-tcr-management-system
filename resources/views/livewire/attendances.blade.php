@@ -65,12 +65,14 @@ function initAttendance() {
   if (attendanceInitialized) return;   // 👈 prevent re-run
   attendanceInitialized = true;
 
-  console.log("Fetching /me ...");
+    // ✅ only run on Attendances pages
+    if (!window.location.pathname.includes('attendances')) {
+      return;
+    }
+        
   axios.get('/me')
     .then(res => {
       const perms = res.data.permissions || [];
-      console.log("Permissions:", perms);
-
       const formBlock = document.getElementById('attendanceFormBlock');
       if (formBlock && perms.includes('attendance-mark')) {
         formBlock.style.display = 'block';

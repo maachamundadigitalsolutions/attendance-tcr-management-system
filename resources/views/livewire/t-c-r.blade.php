@@ -116,13 +116,13 @@
 <script>
 (function () {
   function initTcrTable() {
-    console.log("Init TCR Table running...");
-
-    const token = localStorage.getItem('api_token');
-    if (!token) {
-      // window.location.href = "/login";
+     // ✅ only run on TCR pages
+    if (!window.location.pathname.includes('tcr')) {
       return;
     }
+
+    const token = localStorage.getItem('api_token');
+    if (!token) return;
 
     // Destroy old DataTable if exists
     if ($.fn.DataTable.isDataTable('#tcrTable')) {
@@ -153,9 +153,9 @@
             r.user_id ?? '—',
             r.status ?? '—',
             r.payment_term ?? '—',
-            r.amount ?? '—', // 👈 Show amount
-            '—', // placeholder for TCR Photo
-            '—', // placeholder for Payment Screenshot
+            r.amount ?? '—',
+            '—',
+            '—',
             `
               ${r.status === 'assigned' ? `<button class="btn btn-success btn-sm useBtn" data-id="${r.id}">Use</button>` : ''}
               ${r.status === 'used' && r.payment_term === 'case' ? `<button class="btn btn-info btn-sm verifyCaseBtn" data-id="${r.id}">Verify Case</button>` : ''}
@@ -169,23 +169,25 @@
       .catch(err => console.error("Error loading TCRs:", err));
 
     // Populate dropdown with assigned TCRs
-    axios.get('/tcrs/assigned')
-      .then(res => {
-        const select = document.getElementById('tcr_id_select');
+    axios.get('/tcrs/assigned').then(res => {
+      const select = document.getElementById('tcr_id_select');
+      if (select) {
         select.innerHTML = '';
         res.data.forEach(tcr => {
           select.insertAdjacentHTML('beforeend', `<option value="${tcr.id}">TCR No ${tcr.tcr_no}</option>`);
         });
-      });
+      }
+    });
 
-    // Use TCR
+    // Delegated events for dynamic table buttons
     $('#tcrTable').off('click', '.useBtn').on('click', '.useBtn', function () {
       const id = $(this).data('id');
-      document.getElementById('tcr_id').value = id;
+      const hiddenId = document.getElementById('tcr_id');
+      if (hiddenId) hiddenId.value = id;
       $('#tcrModal').modal('show');
     });
 
-    // Verify Case
+     // Verify Case
     $('#tcrTable').off('click', '.verifyCaseBtn').on('click', '.verifyCaseBtn', function () {
       const id = $(this).data('id');
       axios.post(`/tcrs/${id}/verify`, { action: 'verified' })
@@ -193,7 +195,8 @@
         .catch(() => alert("Verification failed"));
     });
 
-    // Verify Online
+
+ // Verify Online
     $('#tcrTable').off('click', '.verifyOnlineBtn').on('click', '.verifyOnlineBtn', function () {
       const id = $(this).data('id');
       axios.post(`/tcrs/${id}/verify`, { action: 'verified' })
@@ -211,32 +214,39 @@
         .catch(() => alert("Delete failed"));
     });
 
-    // Save (Employee Use TCR)
-    document.getElementById('tcrForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-      const id = document.getElementById('tcr_id').value;
+    // Safe binding for TCR form
+    const tcrForm = document.getElementById('tcrForm');
+    if (tcrForm) {
+      tcrForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const id = document.getElementById('tcr_id')?.value;
 
-      axios.post(`/tcrs/${id}/use`, formData)
-        .then(() => {
-          $('#tcrModal').modal('hide');
-          location.reload();
-        })
-        .catch(() => alert("Error saving"));
-    });
+        axios.post(`/tcrs/${id}/use`, formData)
+          .then(() => {
+            $('#tcrModal').modal('hide');
+            location.reload();
+          })
+          .catch(() => alert("Error saving"));
+      });
+    }
 
-    // Toggle screenshot field
-    document.getElementById('payment_term').addEventListener('change', function () {
-      document.getElementById('screenshotDiv').style.display = this.value === 'online' ? 'block' : 'none';
-    });
+    // Safe binding for payment term change
+    const paymentTerm = document.getElementById('payment_term');
+    if (paymentTerm) {
+      paymentTerm.addEventListener('change', function () {
+        const screenshotDiv = document.getElementById('screenshotDiv');
+        if (screenshotDiv) {
+          screenshotDiv.style.display = this.value === 'online' ? 'block' : 'none';
+        }
+      });
+    }
 
-    axios.get('/users/engineers')
-      .then(res => {
-        const select = document.getElementById('employeeSelect');
-        // clear all options first
+    // Populate employee select
+    axios.get('/users/engineers').then(res => {
+      const select = document.getElementById('employeeSelect');
+      if (select) {
         select.innerHTML = '<option value="" disabled selected>-- Select Employee --</option>';
-
-        // use Set to avoid duplicates
         const seen = new Set();
         res.data.forEach(emp => {
           if (!seen.has(emp.id)) {
@@ -245,36 +255,45 @@
               `<option value="${emp.id}">${emp.name} (${emp.user_id})</option>`);
           }
         });
-      });
-
-
-
-
-
-    document.getElementById('bulkAssignForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData(this);
-
-      axios.post('/tcrs/bulk-assign', {
-        first_tcr_no: formData.get('first_tcr_no'),
-        last_tcr_no: formData.get('last_tcr_no'),
-        user_id: formData.get('user_id')
-      })
-      .then(res => {
-        alert(res.data.message + " | Inserted: " + res.data.inserted_count);
-        location.reload();
-      })
-      .catch(err => {
-        console.error("Bulk assign error:", err.response ? err.response.data : err);
-        alert("Bulk assign failed");
-      });
+      }
     });
 
+    // Safe binding for bulk assign form
+    const bulkForm = document.getElementById('bulkAssignForm');
+    if (bulkForm) {
+      bulkForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        axios.post('/tcrs/bulk-assign', {
+          first_tcr_no: formData.get('first_tcr_no'),
+          last_tcr_no: formData.get('last_tcr_no'),
+          user_id: formData.get('user_id')
+        })
+        .then(res => {
+          alert(res.data.message + " | Inserted: " + res.data.inserted_count);
+          location.reload();
+        })
+        .catch(err => {
+          console.error("Bulk assign error:", err.response ? err.response.data : err);
+          alert("Bulk assign failed");
+        });
+      });
+    }
   }
 
-  // Bind events
   document.addEventListener('DOMContentLoaded', initTcrTable);
-  document.addEventListener('livewire:navigated', initTcrTable);
+  document.addEventListener('livewire:navigated', () => {
+    setTimeout(initTcrTable, 0);
+  });
+
+  Livewire.hook('message.processed', () => {
+    initTcrTable();
+  });
+
+
 })();
+
+
 </script>
 @endpush

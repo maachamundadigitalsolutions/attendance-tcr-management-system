@@ -2,12 +2,27 @@
   <h1>User Management</h1>
   <button class="btn btn-primary mb-3" onclick="openCreateModal()">Add User</button>
 
-  <table class="table table-bordered">
-    <thead>
-      <tr><th>ID</th><th>Name</th><th>User ID</th><th>Actions</th></tr>
-    </thead>
-    <tbody id="users-table"></tbody>
-  </table>
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Users</h3>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table id="usersTable" class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>User ID</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal -->
   <div class="modal fade" id="userModal" tabindex="-1" role="dialog">
@@ -20,17 +35,27 @@
           </div>
           <div class="modal-body">
             <input type="hidden" id="editId">
+
             <div class="form-group">
               <label>Name</label>
               <input type="text" id="name" class="form-control" autocomplete="name">
             </div>
+
             <div class="form-group">
               <label>User ID</label>
               <input type="text" id="user_id" class="form-control" autocomplete="username">
             </div>
-            <div class="form-group">
+
+            <div class="form-group" id="password-group">
               <label>Password</label>
-              <input type="password" id="password" class="form-control" autocomplete="current-password">
+              <input type="password" id="password" class="form-control" autocomplete="new-password">
+            </div>
+
+            <div class="form-group">
+              <label>Role</label>
+              <select id="role" class="form-control">
+                <option value="">-- Select Role --</option>
+              </select>
             </div>
           </div>
           <div class="modal-footer">
@@ -44,100 +69,70 @@
 </div>
 
 @push('scripts')
-
 <script>
-  function loadUsers() {
-    const tbody = document.getElementById('users-table');
-    if (!tbody) return;
+(function () {
+  function initUsersTable() {
+    // Destroy old DataTable if exists
+    if ($.fn.DataTable.isDataTable('#usersTable')) {
+      $('#usersTable').DataTable().clear().destroy();
+    }
 
-    axios.get('/user-list').then(res => {
-      tbody.innerHTML = '';
-      (res.data?.data || []).forEach(u => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${u.id}</td>
-            <td>${u.name}</td>
-            <td>${u.user_id}</td>
-            <td>
-              <button class="btn btn-sm btn-info" onclick="editUser(${u.id})">Edit</button>
-              <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})">Delete</button>
-            </td>
-          </tr>`;
-      });
-    }).catch(err => console.error("Error fetching users:", err));
-  }
-
-  window.openCreateModal = function() {
-    ['editId','name','user_id','password'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
+    const table = $("#usersTable").DataTable({
+      responsive: true,
+      lengthChange: true,
+      autoWidth: false,
+      paging: true,
+      searching: true,
+      ordering: true,
+      info: true,
+      pageLength: 10,
+      buttons: [
+        { extend: 'copy', className: 'btn btn-secondary btn-sm' },
+        { extend: 'csv', className: 'btn btn-info btn-sm' },
+        { extend: 'excel', className: 'btn btn-success btn-sm', exportOptions: { columns: ':not(:last-child)' } },
+        { extend: 'pdf', className: 'btn btn-danger btn-sm', exportOptions: { columns: ':not(:last-child)' } },
+        { extend: 'print', className: 'btn btn-primary btn-sm', exportOptions: { columns: ':not(:last-child)' } },
+        { extend: 'colvis', className: 'btn btn-warning btn-sm' }
+      ]
     });
-    $('#userModal').modal('show');
-  }
+    table.buttons().container().appendTo('#usersTable_wrapper .col-md-6:eq(0)');
 
-  window.editUser = function(id) {
-    axios.get(`/users/${id}`).then(res => {
-      const u = res.data;
-      if (!u) return;
-      document.getElementById('editId').value = u.id;
-      document.getElementById('name').value = u.name;
-      document.getElementById('user_id').value = u.user_id;
-      document.getElementById('password').value = '';
-      $('#userModal').modal('show');
-    }).catch(err => console.error("Error fetching user:", err));
-  }
-
-  document.getElementById('userForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const id = document.getElementById('editId').value;
-    const payload = {
-      name: document.getElementById('name').value,
-      user_id: document.getElementById('user_id').value,
-      password: document.getElementById('password').value
-    };
-
-    const request = id ? axios.put(`/users/${id}`, payload) : axios.post('/users', payload);
-
-    request.then(() => {
-      $('#userModal').modal('hide');
-      loadUsers();
-      Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: id ? 'User updated successfully!' : 'User created successfully!',
-        showConfirmButton: false,
-        timer: 3000
-      });
-    }).catch(err => console.error("Error saving user:", err));
-  });
-
-  window.deleteUser = function(id) {
-    if (confirm("Delete this user?")) {
-      axios.delete(`/users/${id}`).then(() => {
-        loadUsers();
-        Swal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: 'User deleted successfully!',
-          showConfirmButton: false,
-          timer: 3000
+    // Load users
+    axios.get('/user-list')
+      .then(res => {
+        table.clear();
+        (res.data?.data || []).forEach(u => {
+          const roleName = u.roles && u.roles.length ? u.roles[0].name : '';
+          table.row.add([
+            u.id,
+            u.name,
+            u.user_id,
+            roleName,
+            `
+              <button class="btn btn-sm btn-info editBtn" data-id="${u.id}">Edit</button>
+              <button class="btn btn-sm btn-danger deleteBtn" data-id="${u.id}">Delete</button>
+            `
+          ]);
         });
-      });
-    }
+        table.draw(false);
+      })
+      .catch(err => console.error("Error fetching users:", err));
+
+    // Edit user
+    $('#usersTable').off('click', '.editBtn').on('click', '.editBtn', function () {
+      const id = $(this).data('id');
+      editUser(id);
+    });
+
+    // Delete user
+    $('#usersTable').off('click', '.deleteBtn').on('click', '.deleteBtn', function () {
+      const id = $(this).data('id');
+      deleteUser(id);
+    });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    if (window.location.pathname.includes('user-management')) {
-      loadUsers();
-    }
-  });
-
-  document.addEventListener('livewire:navigated', () => {
-    if (window.location.pathname.includes('user-management')) {
-      loadUsers();
-    }
-  });
+  document.addEventListener('DOMContentLoaded', initUsersTable);
+  document.addEventListener('livewire:navigated', initUsersTable);
+})();
 </script>
 @endpush

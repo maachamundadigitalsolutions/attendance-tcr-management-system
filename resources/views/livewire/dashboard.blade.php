@@ -10,14 +10,19 @@
 <script src="{{ asset('js/axios-setup.js') }}"></script>
 
 <script>
+  
 function loadUserData() {
+    // ✅ only run on Dashboard pages
+    if (!window.location.pathname.includes('dashboard')) {
+      return;
+    }
+
     const token = localStorage.getItem('api_token');
-    console.log('token', token);
-    
     if (!token) {
-        // window.location.href = "/login";
+        window.location.href = "/login";
         return;
     }
+
 
     axios.get('/me')
       .then(res => {
