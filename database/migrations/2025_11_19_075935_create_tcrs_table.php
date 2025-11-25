@@ -11,20 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tcrs', function (Blueprint $table) {
-            $table->id();
-            $table->integer('tcr_no'); // Admin assigns only TCR No
-            $table->string('sr_no')->nullable(); // Employee enters Service Order No later
-            $table->unsignedBigInteger('user_id'); // Assigned employee
-            $table->enum('payment_term',['case','online'])->nullable();
-            $table->decimal('amount', 10, 2)->nullable();
-            $table->string('tcr_photo')->nullable();
-            $table->string('payment_screenshot')->nullable();
-            $table->enum('status',['assigned','used','verified','rejected'])->default('assigned');
-            $table->timestamps();
+       Schema::create('tcrs', function (Blueprint $table) {
+                $table->id();
+                $table->integer('tcr_no')->index(); // Admin assigns only TCR No
+                $table->string('sr_no')->nullable()->index(); // Employee enters Service Order No later
+                $table->unsignedBigInteger('user_id'); // Assigned employee
+                $table->enum('payment_term',['case','online'])->nullable();
+                $table->decimal('amount', 10, 2)->nullable();
+                $table->text('tcr_photo')->nullable(); // longer path safe
+                $table->text('payment_screenshot')->nullable();
+                $table->enum('status',['assigned','used','verified','rejected'])->default('assigned');
+                $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            });
+
 
     }
 

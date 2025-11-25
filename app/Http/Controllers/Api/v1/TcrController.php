@@ -84,44 +84,60 @@ class TcrController extends Controller
         );
     }
 
-    // Employee uses TCR (enters SR No + selects payment_term + amount)
     public function useTcr(Request $request, $id)
     {
         if (!auth()->user()->can('tcr-use')) {
             return response()->json(['error'=>'Unauthorized'],403);
         }
 
+        // ✅ Verify TCR assigned to this employee
         $tcr = Tcr::where('id',$id)
-                  ->where('user_id',auth()->id())
-                  ->where('status','assigned')
-                  ->firstOrFail();
+                ->where('user_id',auth()->id())
+                ->where('status','assigned')
+                ->firstOrFail();
 
         $validated = $request->validate([
-            'sr_no' => 'required|string',
-            'payment_term' => 'required|in:case,online',
-            'amount' => 'required|numeric|min:0', // 👈 validate amount
-            'tcr_photo' => 'required|file|mimes:jpg,png',
-            'payment_screenshot' => 'nullable|file|mimes:jpg,png,pdf',
+            'sr_no'             => 'required|string',
+            'payment_term'      => 'required|in:case,online',
+            'amount'            => 'required|numeric|min:0',
+            'tcr_photo'         => 'required|file|mimes:jpg,jpeg,png|max:2048',
+            'payment_screenshot'=> 'nullable|file|mimes:jpg,jpeg,png,pdf|max:4096',
         ]);
 
+        $srNo = $validated['sr_no'];
+        $timestamp = now()->format('d_m_Y_H_i_s');
+        $folder = "TCR/{$srNo}";
+
+        // ✅ Save TCR photo
         if ($request->hasFile('tcr_photo')) {
-            $validated['tcr_photo'] = $request->file('tcr_photo')->store('tcr_photos','public');
-        }
-        if ($request->hasFile('payment_screenshot')) {
-            $validated['payment_screenshot'] = $request->file('payment_screenshot')->store('screenshots','public');
+            $filename = "SR_{$srNo}"."TCR_{$tcr->tcr_no}.".$request->file('tcr_photo')->getClientOriginalExtension();
+            $path = $request->file('tcr_photo')->storeAs($folder, $filename, 'public');
+            $validated['tcr_photo'] = $path;
         }
 
+        // ✅ Save payment screenshot (if online)
+        if ($request->hasFile('payment_screenshot')) {
+            $filename = "payment_screenshot_{$timestamp}.".$request->file('payment_screenshot')->getClientOriginalExtension();
+            $path = $request->file('payment_screenshot')->storeAs($folder, $filename, 'public');
+            $validated['payment_screenshot'] = $path;
+        }
+
+        // ✅ Update TCR record
         $tcr->update([
-            'sr_no' => $validated['sr_no'],
-            'payment_term' => $validated['payment_term'],
-            'amount' => $validated['amount'], // 👈 save amount
-            'tcr_photo' => $validated['tcr_photo'] ?? null,
-            'payment_screenshot' => $validated['payment_screenshot'] ?? null,
-            'status' => 'used'
+            'sr_no'             => $validated['sr_no'],
+            'payment_term'      => $validated['payment_term'],
+            'amount'            => $validated['amount'],
+            'tcr_photo'         => $validated['tcr_photo'] ?? null,
+            'payment_screenshot'=> $validated['payment_screenshot'] ?? null,
+            'status'            => 'used',
         ]);
 
-        return response()->json(['message'=>'TCR submitted with Service Order No & Amount, pending admin verification']);
+        return response()->json([
+            'message'=>'TCR submitted successfully, pending admin verification',
+            'tcr'    => $tcr
+        ],200);
     }
+
 
     // Permission-wise verification
     public function verify(Request $request, $id)

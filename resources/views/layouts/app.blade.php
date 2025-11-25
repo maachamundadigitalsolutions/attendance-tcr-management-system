@@ -69,31 +69,11 @@
 <script src="{{ asset('js/axios-setup.js') }}"></script>
 
 <script>
-// document.addEventListener("DOMContentLoaded", () => {
-//   console.log("Layout DOM loaded");
-
-//   const token = localStorage.getItem('api_token');
-//   if (!token) {
-//     window.location.href = "{{ route('login') }}";
-//     return;
-//   }
-
-//   axios.get('/me')
-//     .then(res => {
-//       res.data.roles.forEach(role => {
-//         document.querySelectorAll(`[data-role="${role}"]`).forEach(el => el.style.display = 'block');
-//       });
-//       res.data.permissions.forEach(perm => {
-//         document.querySelectorAll(`[data-permission="${perm}"]`).forEach(el => el.style.display = 'block');
-//       });
-//     })
-//     .catch(() => {
-//       localStorage.clear();
-//       window.location.href = "{{ route('login') }}";
-//     });
-// });
+  window.userRoles = [];
+  window.userPerms = [];
 
 document.addEventListener("DOMContentLoaded", () => {
+
   const token = localStorage.getItem('api_token');
   if (!token) {
     window.location.href = "{{ route('login') }}";
@@ -102,9 +82,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   axios.get('/me')
     .then(res => {
-      const roles = res.data.roles || [];
-      const perms = res.data.permissions || [];
-      console.log('perms', perms);
+      window.userRoles = res.data.roles || [];
+      window.userPerms = res.data.permissions || [];
       
 
       document.querySelectorAll('.nav-item').forEach(el => {
@@ -114,13 +93,13 @@ document.addEventListener("DOMContentLoaded", () => {
         let roleOk = true;
         if (roleAttr) {
           const requiredRoles = roleAttr.split(',').map(r => r.trim());
-          roleOk = requiredRoles.some(r => roles.includes(r));
+          roleOk = requiredRoles.some(r => userRoles.includes(r));
         }
 
         let permOk = true;
         if (permAttr) {
           const requiredPerms = permAttr.split(',').map(p => p.trim());
-          permOk = requiredPerms.some(p => perms.includes(p));
+          permOk = requiredPerms.some(p => userPerms.includes(p));
         }
 
         if (roleOk && permOk) {

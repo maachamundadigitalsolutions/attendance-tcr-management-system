@@ -115,60 +115,125 @@
 @push('scripts')
 <script>
 (function () {
-  function initTcrTable() {
-     // ✅ only run on TCR pages
-    if (!window.location.pathname.includes('tcr')) {
-      return;
-    }
 
+  if (window.__tcrInitAttached) return;
+  window.__tcrInitAttached = true;
+
+  // Axios setup
+  axios.defaults.baseURL = 'http://192.168.1.27:8001/api/v1';
+  axios.defaults.headers.common['Accept'] = 'application/json';
+  axios.interceptors.request.use(config => {
     const token = localStorage.getItem('api_token');
-    if (!token) return;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
 
-    // Destroy old DataTable if exists
-    if ($.fn.DataTable.isDataTable('#tcrTable')) {
-      $('#tcrTable').DataTable().clear().destroy();
+  function bindTcrEvents(tableApi) {
+    $('#tcrTable').off('click', '.useBtn').on('click', '.useBtn', function () {
+      const id = $(this).data('id');
+      document.getElementById('tcr_id').value = id;
+      $('#tcrModal').modal('show');
+    });
+
+    $('#tcrTable').off('click', '.verifyCaseBtn').on('click', '.verifyCaseBtn', function () {
+      const id = $(this).data('id');
+      axios.post(`/tcrs/${id}/verify`, { action: 'verified' })
+        .then(() => location.reload())
+        .catch(() => alert("Verification failed"));
+    });
+
+    $('#tcrTable').off('click', '.verifyOnlineBtn').on('click', '.verifyOnlineBtn', function () {
+      const id = $(this).data('id');
+      axios.post(`/tcrs/${id}/verify`, { action: 'verified' })
+        .then(() => location.reload())
+        .catch(() => alert("Verification failed"));
+    });
+
+    $('#tcrTable').off('click', '.deleteBtn').on('click', '.deleteBtn', function () {
+      const id = $(this).data('id');
+      axios.delete(`/tcrs/${id}`)
+        .then(() => {
+          tableApi.row($(this).parents('tr')).remove().draw();
+        })
+        .catch(() => alert("Delete failed"));
+    });
+  }
+
+  let dt; // keep one DataTable instance
+
+  function initTcrTable() {
+    if (!window.location.pathname.includes('tcr')) return;
+
+    if (!$.fn.DataTable.isDataTable('#tcrTable')) {
+      dt = $("#tcrTable").DataTable({
+        responsive: true,
+        lengthChange: true,
+        autoWidth: false,
+        paging: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        pageLength: 10,
+        buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
+        drawCallback: function () {
+          bindTcrEvents(this.api());
+        }
+      });
+      dt.buttons().container().appendTo('#tcrTable_wrapper .col-md-6:eq(0)');
+    } else {
+      dt.clear();
     }
 
-    const table = $("#tcrTable").DataTable({
-      responsive: true,
-      lengthChange: true,
-      autoWidth: false,
-      paging: true,
-      searching: true,
-      ordering: true,
-      info: true,
-      pageLength: 10,
-      buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
-    });
-    table.buttons().container().appendTo('#tcrTable_wrapper .col-md-6:eq(0)');
+    window.previewPhoto = function(url) {
+      Swal.fire({
+        imageUrl: url,
+        imageAlt: 'Preview',
+        showCloseButton: true,
+        showConfirmButton: false,
+        width: 'auto',
+        background: '#fff',
+      });
+    }
 
     // Load all TCRs
     axios.get('/tcrs')
       .then(res => {
-        table.clear();
+        dt.clear();
         res.data.forEach(r => {
-          table.row.add([
+          console.log('R',r);
+          
+          dt.row.add([
             r.tcr_no ?? '—',
             r.sr_no ?? '—',
             r.user_id ?? '—',
             r.status ?? '—',
             r.payment_term ?? '—',
             r.amount ?? '—',
-            '—',
-            '—',
+            r.tcr_photo ? `<img src="/storage/${r.tcr_photo}" width="60" style="cursor:pointer" onclick="previewPhoto('/storage/${r.tcr_photo}')">` : 'No Photo',
+            r.payment_screenshot ? `<img src="/storage/${r.payment_screenshot}" width="60" style="cursor:pointer" onclick="previewPhoto('/storage/${r.payment_screenshot}')">` : 'No Screenshot',
             `
-              ${r.status === 'assigned' ? `<button class="btn btn-success btn-sm useBtn" data-id="${r.id}">Use</button>` : ''}
-              ${r.status === 'used' && r.payment_term === 'case' ? `<button class="btn btn-info btn-sm verifyCaseBtn" data-id="${r.id}">Verify Case</button>` : ''}
-              ${r.status === 'used' && r.payment_term === 'online' ? `<button class="btn btn-warning btn-sm verifyOnlineBtn" data-id="${r.id}">Verify Online</button>` : ''}
-              <button class="btn btn-danger btn-sm deleteBtn" data-id="${r.id}">Delete</button>
-            `
+            ${r.status === 'assigned' && userPerms.includes('tcr-use')
+              ? `<button class="btn btn-success btn-sm useBtn" data-id="${r.id}">Use</button>` : ''}
+
+            ${r.status === 'used' && r.payment_term === 'case' && userPerms.includes('tcr-verify-case')
+              ? `<button class="btn btn-info btn-sm verifyCaseBtn" data-id="${r.id}">Verify Case</button>` : ''}
+
+            ${r.status === 'used' && r.payment_term === 'online' && userPerms.includes('tcr-verify-online')
+              ? `<button class="btn btn-warning btn-sm verifyOnlineBtn" data-id="${r.id}">Verify Online</button>` : ''}
+
+            ${userPerms.includes('tcr-delete')
+              ? `<button class="btn btn-danger btn-sm deleteBtn" data-id="${r.id}">Delete</button>` : ''}
+          `
           ]);
         });
-        table.draw(false);
+        dt.draw(false);
+        bindTcrEvents(dt); // ✅ ensure events after load
       })
       .catch(err => console.error("Error loading TCRs:", err));
 
-    // Populate dropdown with assigned TCRs
+    // Populate dropdowns
     axios.get('/tcrs/assigned').then(res => {
       const select = document.getElementById('tcr_id_select');
       if (select) {
@@ -179,70 +244,6 @@
       }
     });
 
-    // Delegated events for dynamic table buttons
-    $('#tcrTable').off('click', '.useBtn').on('click', '.useBtn', function () {
-      const id = $(this).data('id');
-      const hiddenId = document.getElementById('tcr_id');
-      if (hiddenId) hiddenId.value = id;
-      $('#tcrModal').modal('show');
-    });
-
-     // Verify Case
-    $('#tcrTable').off('click', '.verifyCaseBtn').on('click', '.verifyCaseBtn', function () {
-      const id = $(this).data('id');
-      axios.post(`/tcrs/${id}/verify`, { action: 'verified' })
-        .then(() => location.reload())
-        .catch(() => alert("Verification failed"));
-    });
-
-
- // Verify Online
-    $('#tcrTable').off('click', '.verifyOnlineBtn').on('click', '.verifyOnlineBtn', function () {
-      const id = $(this).data('id');
-      axios.post(`/tcrs/${id}/verify`, { action: 'verified' })
-        .then(() => location.reload())
-        .catch(() => alert("Verification failed"));
-    });
-
-    // Delete record
-    $('#tcrTable').off('click', '.deleteBtn').on('click', '.deleteBtn', function () {
-      const id = $(this).data('id');
-      axios.delete(`/tcrs/${id}`)
-        .then(() => {
-          table.row($(this).parents('tr')).remove().draw();
-        })
-        .catch(() => alert("Delete failed"));
-    });
-
-    // Safe binding for TCR form
-    const tcrForm = document.getElementById('tcrForm');
-    if (tcrForm) {
-      tcrForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        const id = document.getElementById('tcr_id')?.value;
-
-        axios.post(`/tcrs/${id}/use`, formData)
-          .then(() => {
-            $('#tcrModal').modal('hide');
-            location.reload();
-          })
-          .catch(() => alert("Error saving"));
-      });
-    }
-
-    // Safe binding for payment term change
-    const paymentTerm = document.getElementById('payment_term');
-    if (paymentTerm) {
-      paymentTerm.addEventListener('change', function () {
-        const screenshotDiv = document.getElementById('screenshotDiv');
-        if (screenshotDiv) {
-          screenshotDiv.style.display = this.value === 'online' ? 'block' : 'none';
-        }
-      });
-    }
-
-    // Populate employee select
     axios.get('/users/engineers').then(res => {
       const select = document.getElementById('employeeSelect');
       if (select) {
@@ -257,43 +258,17 @@
         });
       }
     });
-
-    // Safe binding for bulk assign form
-    const bulkForm = document.getElementById('bulkAssignForm');
-    if (bulkForm) {
-      bulkForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-
-        axios.post('/tcrs/bulk-assign', {
-          first_tcr_no: formData.get('first_tcr_no'),
-          last_tcr_no: formData.get('last_tcr_no'),
-          user_id: formData.get('user_id')
-        })
-        .then(res => {
-          alert(res.data.message + " | Inserted: " + res.data.inserted_count);
-          location.reload();
-        })
-        .catch(err => {
-          console.error("Bulk assign error:", err.response ? err.response.data : err);
-          alert("Bulk assign failed");
-        });
-      });
-    }
   }
 
+  // Hooks
   document.addEventListener('DOMContentLoaded', initTcrTable);
-  document.addEventListener('livewire:navigated', () => {
-    setTimeout(initTcrTable, 0);
-  });
-
+  document.addEventListener('livewire:navigated', initTcrTable);
   Livewire.hook('message.processed', () => {
-    initTcrTable();
+    if (window.location.pathname.includes('tcr')) {
+      initTcrTable();
+    }
   });
-
 
 })();
-
-
 </script>
 @endpush

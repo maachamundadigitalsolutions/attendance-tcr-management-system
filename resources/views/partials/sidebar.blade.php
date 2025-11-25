@@ -28,8 +28,8 @@
           </a>
         </li>
        <li class="nav-item" 
-          data-role="admin, engineer" 
-          data-permission="attendance-mark" 
+          data-role="admin, admin2, admin3, engineer" 
+          data-permission="attendance-mark, attendance-view-all" 
           style="display:none;">
         <a href="/attendances-management" class="nav-link" wire:navigate>
           <i class="nav-icon fas fa-id-badge"></i>
@@ -37,7 +37,7 @@
         </a>
       </li>
           <li class="nav-item" 
-          data-role="admin, engineer" 
+          data-role="admin, admin2, admin3, engineer" 
           data-permission="tcr-assign, tcr-view-all, tcr-verify, tcr-delete, tcr-use" 
           style="display:none;">
         <a href="/tcr-management" class="nav-link" wire:navigate>
