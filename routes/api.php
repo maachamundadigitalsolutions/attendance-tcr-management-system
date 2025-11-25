@@ -51,8 +51,7 @@ Route::get('/_perm-test-direct', function () { return response()->json(['ok']); 
         });
 
         // Attendances
-        Route::get('/attendances', [AttendanceController::class, 'index'])
-            ->middleware('permission:attendance-view-all');
+        Route::get('/attendances', [AttendanceController::class, 'index']);
         Route::post('/attendances', [AttendanceController::class, 'store'])
             ->middleware('permission:attendance-mark');
         Route::get('/attendances/{id}', [AttendanceController::class, 'show'])
@@ -61,8 +60,7 @@ Route::get('/_perm-test-direct', function () { return response()->json(['ok']); 
             ->middleware('permission:attendance-delete');
 
         // ✅ TCR Routes
-        Route::get('/tcrs', [TcrController::class, 'index'])
-            ->middleware('permission:tcr-view-all');
+        Route::get('/tcrs', [TcrController::class, 'index']);
         Route::post('/tcrs/bulk-assign', [TcrController::class, 'bulkAssign'])
             ->middleware('permission:tcr-assign');
         Route::get('/tcrs/assigned', [TcrController::class, 'assigned'])

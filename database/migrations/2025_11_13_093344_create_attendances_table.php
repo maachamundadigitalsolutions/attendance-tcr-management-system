@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->date('date');
+            $table->date('date');       // 👈 only the date
+            $table->time('time');       // 👈 only the time
             $table->enum('status', ['present','absent','leave']);
             $table->string('remarks')->nullable();
+            $table->boolean('is_late')->default(false); // 👈 optional flag
             $table->string('photo_path'); // 👈 compulsory, no nullable
             $table->timestamps();
         });
