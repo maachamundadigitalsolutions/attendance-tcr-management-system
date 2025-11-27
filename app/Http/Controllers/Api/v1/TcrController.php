@@ -7,25 +7,49 @@ use Illuminate\Http\Request;
 
 class TcrController extends Controller
 {
-    // List all TCRs (Admin view)
-    public function index()
-    {
-        $tcrs = Tcr::with('user')->get()->map(function ($tcr) {
-            return [
-                'id'         => $tcr->id,
-                'tcr_no'     => $tcr->tcr_no,
-                'user_id'    => $tcr->user->user_id, // physical employee ID
-                'status'     => $tcr->status,
-                'sr_no'      => $tcr->sr_no,
-                'payment_term' => $tcr->payment_term,
-                'amount'     => $tcr->amount, // 👈 include amount in response
-                'tcr_photo'  => $tcr->tcr_photo,
-                'payment_screenshot' => $tcr->payment_screenshot,
-            ];
-        });
+   // List all TCRs (Admin / User view)
+public function index(Request $request)
+{
+    $user = $request->user();
 
-        return response()->json($tcrs);
+    $query = Tcr::with('user');
+
+    // 👇 If user has global admin permission
+    if ($user->can('tcr-view-all')) {
+        // no filter → admin sees everything
     }
+    // 👇 If user can only verify CASE payments
+    elseif ($user->can('tcr-verify-case')) {
+        $query->where('payment_term', 'case');
+    }
+    // 👇 If user can only verify ONLINE payments
+    elseif ($user->can('tcr-verify-online')) {
+        $query->where('payment_term', 'online');
+    }
+    // 👇 Otherwise normal user → only assigned to them
+    else {
+        $query->where('user_id', $user->id);
+    }
+
+    $tcrs = $query->get()->map(function ($tcr) {
+        return [
+            'id'                => $tcr->id,
+            'tcr_no'            => $tcr->tcr_no,
+            'user_id'           => $tcr->user->user_id, // physical employee ID
+            'status'            => $tcr->status,
+            'sr_no'             => $tcr->sr_no,
+            'payment_term'      => $tcr->payment_term,
+            'amount'            => $tcr->amount,
+            'tcr_photo'         => $tcr->tcr_photo,
+            'payment_screenshot'=> $tcr->payment_screenshot,
+            'verified_by'       => $tcr->verified_by ? User::find($tcr->verified_by)->name : null,
+            'verified_at'       => $tcr->verified_at,
+        ];
+    });
+
+    return response()->json($tcrs);
+}
+
 
     // Admin bulk assigns TCR range
     public function bulkAssign(Request $request)

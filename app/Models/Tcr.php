@@ -9,7 +9,17 @@ class Tcr extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['tcr_no','user_id','status','sr_no','payment_term','amount','tcr_photo','payment_screenshot'];
+    protected $fillable = [
+        'tcr_no',
+        'user_id',
+        'status',
+        'sr_no',
+        'payment_term',
+        'amount',
+        'tcr_photo',
+        'payment_screenshot', 
+        'verified_by',
+        'verified_at'];
 
     // Relation with User
     public function user()

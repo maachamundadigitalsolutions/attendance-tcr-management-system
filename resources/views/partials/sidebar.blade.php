@@ -38,7 +38,7 @@
       </li>
           <li class="nav-item" 
           data-role="admin, admin2, admin3, engineer" 
-          data-permission="tcr-assign, tcr-view-all, tcr-verify, tcr-delete, tcr-use" 
+          data-permission="tcr-assign, tcr-view-all, tcr-verify, tcr-delete, tcr-use, tcr-verify-case, tcr-verify-online" 
           style="display:none;">
         <a href="/tcr-management" class="nav-link" wire:navigate>
           <i class="nav-icon fas fa-id-badge"></i>
