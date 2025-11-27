@@ -21,6 +21,8 @@ return new class extends Migration
                 $table->text('tcr_photo')->nullable(); // longer path safe
                 $table->text('payment_screenshot')->nullable();
                 $table->enum('status',['assigned','used','verified','rejected'])->default('assigned');
+                $table->unsignedBigInteger('verified_by')->nullable();
+                $table->timestamp('verified_at')->nullable();
                 $table->timestamps();
 
                 $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

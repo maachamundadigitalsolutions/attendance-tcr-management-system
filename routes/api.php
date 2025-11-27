@@ -68,7 +68,7 @@ Route::get('/_perm-test-direct', function () { return response()->json(['ok']); 
         Route::post('/tcrs/{id}/use', [TcrController::class, 'useTcr'])
             ->middleware('permission:tcr-use');
         Route::post('/tcrs/{id}/verify', [TcrController::class, 'verify'])
-            ->middleware('permission:tcr-verify-case, tcr-verify-online');
+            ->middleware('auth:api');
         Route::delete('/tcrs/{id}', [TcrController::class, 'destroy'])
             ->middleware('permission:tcr-delete');
     });

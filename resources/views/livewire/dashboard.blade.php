@@ -1,5 +1,5 @@
 <div class="container mt-4">
-    <h1>Welcome, <span id="username"></span></h1>
+    <h1>Welcome , <span id="username"></span></h1>
     <p>Roles: <span id="roles"></span></p>
     <p>Permissions: <span id="permissions"></span></p>
     <button onclick="logout()" class="btn btn-danger mt-3">Logout</button>

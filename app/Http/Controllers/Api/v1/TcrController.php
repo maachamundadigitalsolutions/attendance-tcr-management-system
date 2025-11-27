@@ -142,7 +142,7 @@ class TcrController extends Controller
     // Permission-wise verification
     public function verify(Request $request, $id)
     {
-        $user = auth()->user();
+        $user = $request->user();
         $tcr  = Tcr::findOrFail($id);
 
         $validated = $request->validate([
@@ -150,23 +150,40 @@ class TcrController extends Controller
         ]);
 
         if ($user->can('tcr-verify')) {
-            $tcr->update(['status' => $validated['action']]);
+            $tcr->update([
+                'status' => $validated['action'],
+                'verified_by' => $user->id,
+                'verified_at' => now(),
+            ]);
         } elseif ($user->can('tcr-verify-case')) {
             if ($tcr->payment_term !== 'case') {
                 return response()->json(['error' => 'Unauthorized: You can only verify CASE payments'],403);
             }
-            $tcr->update(['status' => $validated['action']]);
+            $tcr->update([
+                'status' => $validated['action'],
+                'verified_by' => $user->id,
+                'verified_at' => now(),
+            ]);
         } elseif ($user->can('tcr-verify-online')) {
             if ($tcr->payment_term !== 'online') {
                 return response()->json(['error' => 'Unauthorized: You can only verify ONLINE payments'],403);
             }
-            $tcr->update(['status' => $validated['action']]);
+            $tcr->update([
+                'status' => $validated['action'],
+                'verified_by' => $user->id,
+                'verified_at' => now(),
+            ]);
         } else {
             return response()->json(['error'=>'Unauthorized: No verification permission'],403);
         }
 
-        return response()->json(['message'=>"TCR {$validated['action']} successfully"]);
+        return response()->json([
+            'message'=>"TCR {$validated['action']} successfully",
+            'verified_by' => $user->name,
+            'verified_at' => now()->toDateTimeString(),
+        ]);
     }
+
 
     // Delete TCR
     public function destroy($id)

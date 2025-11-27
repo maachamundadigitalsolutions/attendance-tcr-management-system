@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   axios.get('/me')
-    .then(res => {
+    .then(res => {     
       window.userRoles = res.data.roles || [];
       window.userPerms = res.data.permissions || [];
       
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       // ✅ Bulk assign card toggle
-      if (perms.includes('tcr-assign')) {
+      if (userPerms.includes('tcr-assign')) {
         const card = document.getElementById('bulkAssignCard');
         if (card) {
           card.style.display = 'block';

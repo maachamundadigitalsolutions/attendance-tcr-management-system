@@ -69,21 +69,27 @@
   if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     axios.get('/me').then(res => {
-      // ✅ Already logged in → redirect to dashboard
-        //   const token = res.data.token;
-        // const user  = res.data.user;
-        // const roles = res.data.roles;
-        // const permissions = res.data.permissions;
+    const token = res.data.token;
+    const user  = res.data.user;
+    const roles = res.data.roles;
+    const permissions = res.data.permissions;
 
-        // Save to localStorage
-        // localStorage.setItem('api_token', token);
-        // localStorage.setItem('user', JSON.stringify(user));
-        // localStorage.setItem('roles', JSON.stringify(roles));
-        // localStorage.setItem('permissions', JSON.stringify(permissions));
+    // Save to localStorage
+    localStorage.setItem('api_token', token);
+    // localStorage.setItem('user', JSON.stringify(user));
+    // localStorage.setItem('roles', JSON.stringify(roles));
+    // localStorage.setItem('permissions', JSON.stringify(permissions));
 
-        // Redirect to dashboard
-        window.location.href = "{{ route('dashboard') }}";
-    }).catch(() => {
+    // ✅ Update Alpine store
+    Alpine.store('auth').set({
+        user: user,
+        roles: roles,
+        permissions: permissions
+    });
+
+    // Redirect to dashboard
+    window.location.href = "{{ route('dashboard') }}";
+}).catch(() => {
       // ❌ Token invalid → clear and show login form
       localStorage.clear();
       document.getElementById('loginBox').style.display = 'block';
