@@ -41,14 +41,14 @@ Route::get('/_perm-test-direct', function () { return response()->json(['ok']); 
         });
 
         // Users management (admin only)
-        Route::middleware('role:admin')->group(function () {
+        // Route::middleware('role:admin')->group(function () {
             Route::get('/users/engineers', [UserController::class, 'engineers']);
             Route::get('/user-list', [UserController::class, 'index']);
             Route::post('/users', [UserController::class, 'store']);
             Route::get('/users/{id}', [UserController::class, 'show']);
             Route::put('/users/{id}', [UserController::class, 'update']);
             Route::delete('/users/{id}', [UserController::class, 'destroy']);
-        });
+        // });
 
         // Attendances
         Route::get('/attendances', [AttendanceController::class, 'index']);

@@ -7,19 +7,22 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    // List all roles with permissions
-    public function index()
+   public function index()
     {
-        $roles = Role::with('permissions')->get()->map(function ($role) {
-            return [
-                'id' => $role->id,
-                'name' => $role->name,
-                'permissions' => $role->permissions->pluck('name')->toArray(),
-            ];
-        });
+        $roles = Role::with('permissions')
+            ->where('name', '!=', 'admin') // exclude main admin role
+            ->get()
+            ->map(function ($role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'permissions' => $role->permissions->pluck('name')->toArray(),
+                ];
+            });
 
         return response()->json(['roles' => $roles]);
     }
+
 
     // Show single role with permissions
     public function show($id)
@@ -42,6 +45,13 @@ class RoleController extends Controller
             'name' => 'required|string|unique:roles',
             'permissions' => 'array'
         ]);
+
+        // prevent creating role named "admin"
+        if (strtolower($request->name) === 'admin') {
+            return response()->json([
+                'message' => 'The "admin" role cannot be created'
+            ], 403);
+        }
 
         // 👇 guard_name explicitly set to "api"
         $role = Role::create([
@@ -70,6 +80,12 @@ class RoleController extends Controller
             'name' => 'required|string|unique:roles,name,' . $role->id,
             'permissions' => 'array'
         ]);
+        // prevent creating role named "admin"
+        if (strtolower($request->name) === 'admin') {
+            return response()->json([
+                'message' => 'The "admin" role cannot be created'
+            ], 403);
+        }
 
         $role->update(['name' => $request->name]);
         $role->syncPermissions($request->permissions ?? []);
@@ -88,8 +104,15 @@ class RoleController extends Controller
     public function destroy($id)
     {
         $role = Role::findOrFail($id);
+
+        // prevent deleting main admin role
+        if ($role->name === 'admin') {
+            return response()->json(['message' => 'Main admin role cannot be deleted'], 403);
+        }
+
         $role->delete();
 
         return response()->json(['message' => 'Role deleted successfully']);
     }
+
 }

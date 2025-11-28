@@ -2,7 +2,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tcr;
+use App\Models\User;   // ✅ Correct import
+use App\Models\Tcr;    // (if you have Tcr model)
 use Illuminate\Http\Request;
 
 class TcrController extends Controller

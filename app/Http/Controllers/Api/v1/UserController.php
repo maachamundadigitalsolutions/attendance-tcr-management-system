@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -23,7 +24,7 @@ class UserController extends Controller
             'user_id'  => 'required|digits_between:5,15|unique:users,user_id',
             'name'     => 'required|string|min:3',
             'password' => 'required|min:6',
-            'role'     => 'required|string|exists:roles,name',
+            'role' => 'required|exists:roles,id',
         ]);
 
         $user = User::create([
@@ -49,28 +50,42 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
+            // prevent role change for main admin
+        if ($user->user_id === 'admin001') {
+            return response()->json(['message' => 'Main admin role cannot be changed'], 403);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|min:3',
-            'role' => 'required|string|exists:roles,name',
+            'role' => 'required|exists:roles,id',
         ]);
 
         $user->update([
             'name' => $validated['name'],
-            // user_id untouched
-            // password untouched
         ]);
 
-        $user->syncRoles([$validated['role']]);
+        // fetch role by ID
+        $role = Role::find($validated['role']);
+        if ($role) {
+            $user->syncRoles([$role->name]); // pass role name
+        }
 
         return response()->json($user->load('roles'));
     }
 
     // Delete user
-    public function destroy($id)
+   public function destroy($id)
     {
-        User::findOrFail($id)->delete();
+        $user = User::findOrFail($id);
+
+        if ($user->user_id === 'admin001') {
+            return response()->json(['message' => 'Main admin cannot be deleted'], 403);
+        }
+
+        $user->delete();
         return response()->json(['message' => 'User deleted successfully']);
     }
+
 
     // Engineers list
     public function engineers()

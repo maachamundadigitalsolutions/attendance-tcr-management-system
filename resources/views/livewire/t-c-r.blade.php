@@ -161,7 +161,47 @@
         })
         .catch(() => alert("Delete failed"));
     });
+
+    // show/hide screenshotDiv based on payment_term
+  $(document).on('change', '#payment_term', function() {
+    if (this.value === 'online') {
+      $('#screenshotDiv').show();
+      $('#payment_screenshot').attr('required', true); // optional: make required
+    } else {
+      $('#screenshotDiv').hide();
+      $('#payment_screenshot').removeAttr('required');
+    }
+  });
+
   }
+
+ // delegated listener → works even if Livewire re-renders
+  $(document).on('submit', '#tcrForm', function(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('tcr_id').value;
+    const formData = new FormData(this);
+
+    // ✅ Extra validation: if payment_term = online → screenshot required
+    const paymentTerm = document.getElementById('payment_term').value;
+    const screenshotInput = document.getElementById('payment_screenshot');
+
+    if (paymentTerm === 'online' && !screenshotInput.files.length) {
+      alert("Payment Screenshot is required for online payments");
+      return; // stop submit
+    }
+
+    axios.post(`/tcrs/${id}/use`, formData)
+      .then(() => {
+        $('#tcrModal').modal('hide');
+        location.reload(); // reload table after success
+      })
+      .catch(err => {
+        console.error("TCR use failed:", err);
+        alert(err.response?.data?.message || "Failed to use TCR");
+      });
+  });
+
 
   async function initTcrTable() {
     if (!window.location.pathname.includes('tcr')) return;

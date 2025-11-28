@@ -38,22 +38,22 @@
 
             <div class="form-group">
               <label>Name</label>
-              <input type="text" id="name" class="form-control" autocomplete="name">
+              <input type="text" id="name" class="form-control" required>
             </div>
 
             <div class="form-group">
               <label>User ID</label>
-              <input type="text" id="user_id" class="form-control" autocomplete="username">
+              <input type="text" id="user_id" class="form-control" required>
             </div>
 
             <div class="form-group" id="password-group">
               <label>Password</label>
-              <input type="password" id="password" class="form-control" autocomplete="new-password">
+              <input type="password" id="password" class="form-control">
             </div>
 
             <div class="form-group">
               <label>Role</label>
-              <select id="role" class="form-control">
+              <select id="role" class="form-control" required>
                 <option value="">-- Select Role --</option>
               </select>
             </div>
@@ -71,13 +71,78 @@
 @push('scripts')
 <script>
 (function () {
+  let usersTable;
+
+  // 👉 Load roles dropdown
+  function loadRolesDropdown(selectedId = '') {
+    axios.get('/roles').then(res => {
+      const select = document.getElementById('role');
+      if (select) {
+        select.innerHTML = '<option value="">-- Select Role --</option>';
+        (res.data.roles || []).forEach(r => {
+          select.insertAdjacentHTML('beforeend',
+            `<option value="${r.id}">${r.name}</option>`);
+        });
+        if (selectedId) {
+          select.value = selectedId;
+        }
+      }
+    }).catch(err => console.error("Error loading roles:", err));
+  }
+
+  // 👉 Open create modal
+  window.openCreateModal = function() {
+    loadRolesDropdown();
+    document.getElementById('editId').value = '';
+    document.getElementById('name').value = '';
+    document.getElementById('user_id').value = '';
+    document.getElementById('password').value = '';
+    $('#password-group').show();
+    $('#userModal').modal('show');
+  };
+
+  // 👉 Edit user
+  window.editUser = function(id) {
+    axios.get(`/users/${id}`).then(res => {
+    console.log('Failed to load user',res.data );
+    
+    const u = res.data.data || res.data; // handle both cases
+
+    // if roles not present, fallback to empty string
+    const roleId = (u.roles && u.roles.length > 0) ? u.roles[0].id : '';
+    loadRolesDropdown(roleId);
+
+      document.getElementById('editId').value = u.id;
+      document.getElementById('name').value = u.name;
+      document.getElementById('user_id').value = u.user_id;
+      document.getElementById('password').value = '';
+      $('#password-group').hide();
+      $('#userModal').modal('show');
+    }).catch(err => {
+      console.error("Error loading user:", err);
+      alert("Failed to load user");
+    });
+  };
+
+  // 👉 Delete user
+  window.deleteUser = function(id) {
+    if (confirm("Delete this user?")) {
+      axios.delete(`/users/${id}`).then(() => {
+        reloadUsers();
+      }).catch(err => {
+        console.error("Delete failed:", err);
+        alert("Delete failed");
+      });
+    }
+  };
+
+  // 👉 Initialize DataTable
   function initUsersTable() {
-    // Destroy old DataTable if exists
     if ($.fn.DataTable.isDataTable('#usersTable')) {
       $('#usersTable').DataTable().clear().destroy();
     }
 
-    const table = $("#usersTable").DataTable({
+    usersTable = $("#usersTable").DataTable({
       responsive: true,
       lengthChange: true,
       autoWidth: false,
@@ -95,15 +160,19 @@
         { extend: 'colvis', className: 'btn btn-warning btn-sm' }
       ]
     });
-    table.buttons().container().appendTo('#usersTable_wrapper .col-md-6:eq(0)');
+    usersTable.buttons().container().appendTo('#usersTable_wrapper .col-md-6:eq(0)');
 
-    // Load users
+    reloadUsers();
+  }
+
+  // 👉 Reload users
+  function reloadUsers() {
     axios.get('/user-list')
       .then(res => {
-        table.clear();
+        usersTable.clear();
         (res.data?.data || []).forEach(u => {
           const roleName = u.roles && u.roles.length ? u.roles[0].name : '';
-          table.row.add([
+          usersTable.row.add([
             u.id,
             u.name,
             u.user_id,
@@ -114,25 +183,51 @@
             `
           ]);
         });
-        table.draw(false);
+        usersTable.draw(false);
+
+        // bind events
+        $('#usersTable').off('click', '.editBtn').on('click', '.editBtn', function () {
+          const id = $(this).data('id');
+          editUser(id);
+        });
+
+        $('#usersTable').off('click', '.deleteBtn').on('click', '.deleteBtn', function () {
+          const id = $(this).data('id');
+          deleteUser(id);
+        });
       })
       .catch(err => console.error("Error fetching users:", err));
-
-    // Edit user
-    $('#usersTable').off('click', '.editBtn').on('click', '.editBtn', function () {
-      const id = $(this).data('id');
-      editUser(id);
-    });
-
-    // Delete user
-    $('#usersTable').off('click', '.deleteBtn').on('click', '.deleteBtn', function () {
-      const id = $(this).data('id');
-      deleteUser(id);
-    });
   }
+
+  // 👉 Form submit
+  document.addEventListener('submit', function(e) {
+    if (e.target && e.target.id === 'userForm') {
+      e.preventDefault();
+      const id = document.getElementById('editId').value;      
+      const payload = {
+        name: document.getElementById('name').value,
+        user_id: document.getElementById('user_id').value,
+        password: document.getElementById('password').value,
+        role: document.getElementById('role').value
+      };
+
+      const request = id
+        ? axios.put(`/users/${id}`, payload)
+        : axios.post('/users', payload);
+
+      request.then(() => {
+        $('#userModal').modal('hide');
+        reloadUsers();
+      }).catch(err => {
+        console.error("Save failed:", err);
+        alert("Save failed", err);
+      });
+    }
+  });
 
   document.addEventListener('DOMContentLoaded', initUsersTable);
   document.addEventListener('livewire:navigated', initUsersTable);
+
 })();
 </script>
 @endpush

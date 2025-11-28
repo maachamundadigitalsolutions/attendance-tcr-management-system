@@ -40,11 +40,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $admin2Role->syncPermissions([
-            $viewAttendances, $tcrViewAll, $tcrVerifyCase
+            $viewAttendances, $tcrVerifyCase
         ]);
 
         $admin3Role->syncPermissions([
-            $viewAttendances, $tcrViewAll, $tcrVerifyOnline
+            $viewAttendances, $tcrVerifyOnline
         ]);
 
         $engineerRole->syncPermissions([

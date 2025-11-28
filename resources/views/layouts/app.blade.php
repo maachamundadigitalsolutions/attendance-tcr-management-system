@@ -84,6 +84,19 @@ document.addEventListener("DOMContentLoaded", () => {
     .then(res => {     
       window.userRoles = res.data.roles || [];
       window.userPerms = res.data.permissions || [];
+
+        // check current URL
+      const currentPath = window.location.pathname;
+
+      // protect user-management page
+      if (currentPath.includes('/user-management')) {
+        if (!userRoles.includes('admin')) {
+          alert("Unauthorized access");
+           // Redirect to dashboard
+           window.location.href = "{{ route('dashboard') }}"; // redirect to dashboard/home
+          return;
+        }
+      }
       
 
       document.querySelectorAll('.nav-item').forEach(el => {

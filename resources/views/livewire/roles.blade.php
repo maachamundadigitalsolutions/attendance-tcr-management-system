@@ -57,28 +57,25 @@
 
 <script>
 (function () {
-  // keep rolesTable in module scope, not redeclared
   var rolesTable = null;
 
   function initRolesTable() {
-    // only run on the roles-permissions page
-    if (!window.location.pathname.includes('roles-permissions')) {
-      return;
+    if (!window.location.pathname.includes('roles-permissions')) return;
+
+    if (!$.fn.DataTable.isDataTable('#rolesTable')) {
+      rolesTable = $("#rolesTable").DataTable({
+        responsive: true,
+        autoWidth: false,
+        buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
+      });
+      rolesTable.buttons().container().appendTo('#rolesTable_wrapper .col-md-6:eq(0)');
     }
 
-    // destroy old instance if exists
-    if ($.fn.DataTable.isDataTable('#rolesTable')) {
-      $('#rolesTable').DataTable().clear().destroy();
-    }
+    // first load
+    reloadRoles();
+  }
 
-    rolesTable = $("#rolesTable").DataTable({
-      responsive: true,
-      autoWidth: false,
-      buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
-    });
-    rolesTable.buttons().container().appendTo('#rolesTable_wrapper .col-md-6:eq(0)');
-
-    // ✅ Load roles and build permissions list
+  function reloadRoles() {
     axios.get('/roles').then(res => {
       rolesTable.clear();
       res.data.roles.forEach(r => {
@@ -126,7 +123,7 @@
 
       request.then(() => {
         $('#roleModal').modal('hide');
-        initRolesTable();
+        reloadRoles(); // 👈 only reload rows, not re-init
         Swal.fire({
           toast: true,
           position: 'top-end',
@@ -142,7 +139,7 @@
     }
   });
 
-// ✅ Edit role
+  // Edit role
   $('#rolesTable').on('click', '.editBtn', function () {
     const id = $(this).data('id');
     axios.get(`/roles/${id}`).then(res => {
@@ -158,14 +155,12 @@
     });
   });
 
-// ✅ Delete role
+  // Delete role
   $('#rolesTable').on('click', '.deleteBtn', function () {
     const id = $(this).data('id');
     if (confirm("Delete this role?")) {
       axios.delete(`/roles/${id}`).then(() => {
-        initRolesTable();
-
-// ✅ Show delete toast
+        reloadRoles(); // 👈 only reload rows
         Swal.fire({
           toast: true,
           position: 'top-end',
@@ -178,19 +173,20 @@
     }
   });
 
- // ✅ Reset form when modal closes
+  // Reset form when modal closes
   $('#roleModal').on('hidden.bs.modal', function () {
     document.getElementById('roleForm').reset();
     document.getElementById('role_id').value = '';
     document.querySelectorAll('#permissionsList input[type=checkbox]').forEach(cb => cb.checked = false);
   });
 
-  // ✅ Livewire hooks
+  // Hooks
   document.addEventListener("livewire:load", initRolesTable);
   document.addEventListener('livewire:navigated', initRolesTable);
   if (window.Livewire) {
-    Livewire.on('refreshComponent', initRolesTable);
+    Livewire.on('refreshComponent', reloadRoles);
   }
 })();
+
 </script>
 @endpush

@@ -59,45 +59,33 @@
 <script src="{{ asset('js/axios-setup.js') }}"></script>
 
 <script>
-  // axios.defaults.baseURL = 'http://127.0.0.1:8000/api/v1';
   axios.defaults.baseURL = 'http://192.168.1.27:8001/api/v1';
 
   axios.defaults.headers.common['Accept'] = 'application/json';
 
   const token = localStorage.getItem('api_token');
 
-  if (token) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    axios.get('/me').then(res => {
-    const token = res.data.token;
-    const user  = res.data.user;
-    const roles = res.data.roles;
-    const permissions = res.data.permissions;
+if (token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  axios.get('/me')
+    .then(res => {
+      const user  = res.data.user;
+      const roles = res.data.roles;
+      const permissions = res.data.permissions;
 
-    // Save to localStorage
-    localStorage.setItem('api_token', token);
-    // localStorage.setItem('user', JSON.stringify(user));
-    // localStorage.setItem('roles', JSON.stringify(roles));
-    // localStorage.setItem('permissions', JSON.stringify(permissions));
-
-    // ✅ Update Alpine store
-    Alpine.store('auth').set({
-        user: user,
-        roles: roles,
-        permissions: permissions
-    });
-
-    // Redirect to dashboard
-    window.location.href = "{{ route('dashboard') }}";
-}).catch(() => {
+      // ✅ Already logged in → redirect to dashboard
+      window.location.href = "{{ route('dashboard') }}";
+    })
+    .catch(() => {
       // ❌ Token invalid → clear and show login form
       localStorage.clear();
       document.getElementById('loginBox').style.display = 'block';
     });
-  } else {
-    // ❌ No token → show login form
-    document.getElementById('loginBox').style.display = 'block';
-  }
+} else {
+  // ❌ No token → show login form
+  document.getElementById('loginBox').style.display = 'block';
+}
+
 
   // Login form submit
   document.getElementById('loginForm').addEventListener('submit', function(e) {
