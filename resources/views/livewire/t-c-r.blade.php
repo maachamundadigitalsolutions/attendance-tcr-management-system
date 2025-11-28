@@ -113,10 +113,29 @@
       </div>
     </div>
   </div>
+
+  <!-- Photo Preview Modal -->
+  <div class="modal fade" id="photoPreviewModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body text-center">
+          <img id="previewImage" src="" class="img-fluid" alt="Preview">
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
+
+
+
 @push('scripts')
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
+  
 (function () {
   if (window.__tcrInitAttached) return;
   window.__tcrInitAttached = true;
@@ -131,6 +150,9 @@
 
   let userPerms = [];
   let dt;
+
+ 
+
   
   function bindTcrEvents(tableApi) {
     $('#tcrTable').off('click', '.useBtn').on('click', '.useBtn', function () {
@@ -161,6 +183,21 @@
         })
         .catch(() => alert("Delete failed"));
     });
+
+    // Make previewPhoto available to inline onclick
+    window.previewPhoto = function(url) {
+      Swal.fire({
+        imageUrl: url,              // 👈 preview image source
+        imageAlt: 'Attendance Photo', // 👈 alt text
+        showCloseButton: true,      // 👈 close (X) button
+        showConfirmButton: false,   // 👈 no "OK" button
+        // width: 'auto',              // 👈 auto width
+        width: 1000, 
+        background: '#fff',         // 👈 white background
+      });
+    }
+
+
 
     // show/hide screenshotDiv based on payment_term
   $(document).on('change', '#payment_term', function() {

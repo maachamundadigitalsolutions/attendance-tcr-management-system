@@ -33,8 +33,10 @@ class UserController extends Controller
             'email'    => null,
             'password' => Hash::make($validated['password']),
         ]);
-
-        $user->assignRole($validated['role']);
+        
+        // ✅ fetch role by id and assign by name
+        $role = Role::find($validated['role']);
+        $user->assignRole($role->name);
 
         return response()->json($user->load('roles'), 201);
     }

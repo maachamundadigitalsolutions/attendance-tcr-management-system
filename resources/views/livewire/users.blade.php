@@ -199,6 +199,19 @@
       .catch(err => console.error("Error fetching users:", err));
   }
 
+  function showToast(icon, title) {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: icon,
+    title: title,
+    showConfirmButton: false,
+    timer: 4000,
+    timerProgressBar: true
+  });
+}
+
+
   // 👉 Form submit
   document.addEventListener('submit', function(e) {
     if (e.target && e.target.id === 'userForm') {
@@ -219,9 +232,33 @@
         $('#userModal').modal('hide');
         reloadUsers();
       }).catch(err => {
-        console.error("Save failed:", err);
-        alert("Save failed", err);
-      });
+          if (err.response && err.response.data.errors) {
+            const errors = err.response.data.errors;
+            Object.keys(errors).forEach(field => {
+              errors[field].forEach(msg => {
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'error',
+                  title: msg,
+                  showConfirmButton: false,
+                  timer: 4000,
+                  timerProgressBar: true
+                });
+              });
+            });
+          } else {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'error',
+              title: 'Something went wrong',
+              showConfirmButton: false,
+              timer: 4000,
+              timerProgressBar: true
+            });
+          }
+        });
     }
   });
 

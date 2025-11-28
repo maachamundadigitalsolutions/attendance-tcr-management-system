@@ -130,11 +130,38 @@
           icon: 'success',
           title: roleId ? 'Role updated successfully!' : 'Role created successfully!',
           showConfirmButton: false,
-          timer: 3000
+          timer: 3000,
+          timerProgressBar: true
         });
       }).catch(err => {
         console.error('Role save error:', err);
-        alert('Failed to save role');
+
+        if (err.response && err.response.data.errors) {
+          const errors = err.response.data.errors;
+          Object.keys(errors).forEach(field => {
+            errors[field].forEach(msg => {
+              Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: msg,
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true
+              });
+            });
+          });
+        } else {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Failed to save role',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true
+          });
+        }
       });
     }
   });
