@@ -13,14 +13,17 @@ return new class extends Migration
     {
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->date('date');       // 👈 only the date
-            $table->time('time');       // 👈 only the time
-            $table->enum('status', ['present','absent','leave']);
-            $table->string('remarks')->nullable();
-            $table->boolean('is_late')->default(false); // 👈 optional flag
-            $table->string('photo_path'); // 👈 compulsory, no nullable
+            $table->unsignedBigInteger('user_id');
+            $table->date('date');
+            $table->time('time_in')->nullable();
+            $table->time('time_out')->nullable();
+            $table->string('in_photo_path')->nullable();
+            $table->string('out_photo_path')->nullable();
+            $table->integer('working_hours')->nullable(); // total hours
+            $table->boolean('is_late')->default(false);
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
 
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\TcrController;
+use App\Http\Controllers\Api\V1\NotificationController;
 
 
 Route::prefix('v1')->group(function () {
@@ -51,13 +52,17 @@ Route::get('/_perm-test-direct', function () { return response()->json(['ok']); 
         // });
 
         // Attendances
-        Route::get('/attendances', [AttendanceController::class, 'index']);
-        Route::post('/attendances', [AttendanceController::class, 'store'])
-            ->middleware('permission:attendance-mark');
-        Route::get('/attendances/{id}', [AttendanceController::class, 'show'])
-            ->middleware('permission:attendance-view-all');
-        Route::delete('/attendances/{id}', [AttendanceController::class, 'destroy'])
-            ->middleware('permission:attendance-delete');
+        // Route::get('/attendances', [AttendanceController::class, 'index']);
+        // Route::post('/attendances', [AttendanceController::class, 'store'])
+        //     ->middleware('permission:attendance-mark');
+        // Route::get('/attendances/{id}', [AttendanceController::class, 'show'])
+        //     ->middleware('permission:attendance-view-all');
+        // Route::delete('/attendances/{id}', [AttendanceController::class, 'destroy'])
+        //     ->middleware('permission:attendance-delete');
+          // ✅ Punch In
+         Route::get('/attendances', [AttendanceController::class, 'index']);
+         Route::post('/attendances/punch-in', [AttendanceController::class, 'punchIn']);
+         Route::post('/attendances/{id}/punch-out', [AttendanceController::class, 'punchOut']);
 
         // ✅ TCR Routes
         Route::get('/tcrs', [TcrController::class, 'index']);
@@ -71,6 +76,9 @@ Route::get('/_perm-test-direct', function () { return response()->json(['ok']); 
             ->middleware('auth:api');
         Route::delete('/tcrs/{id}', [TcrController::class, 'destroy'])
             ->middleware('permission:tcr-delete');
+
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     });
 });
 
