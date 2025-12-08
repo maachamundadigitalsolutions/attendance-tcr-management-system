@@ -23,7 +23,7 @@ class AttendanceController extends Controller
 
         return response()->json([
             'data'        => $attendances,
-            'permissions' => $user->getAllPermissions()->pluck('name')
+            // 'permissions' => $user->getAllPermissions()->pluck('name')
         ]);
     }
 
@@ -38,7 +38,7 @@ class AttendanceController extends Controller
         }
 
         $validated = $request->validate([
-            'in_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'in_photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $current = Carbon::now('Asia/Kolkata');
@@ -75,7 +75,7 @@ class AttendanceController extends Controller
         }
 
         $validated = $request->validate([
-            'out_photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'out_photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $attendance->time_out = now('Asia/Kolkata')->format('H:i:s');
@@ -102,5 +102,20 @@ class AttendanceController extends Controller
             'attendance' => $attendance
         ]);
     }
+
+    public function destroy($id)
+    {
+        $attendance = Attendance::findOrFail($id);
+
+        // Optional: prevent delete if already punched out
+        // if ($attendance->time_out) {
+        //     return response()->json(['message' => 'Cannot delete completed attendance'], 400);
+        // }
+
+        $attendance->delete();
+
+        return response()->json(['message' => 'Attendance deleted successfully']);
+    }
+
 
 }

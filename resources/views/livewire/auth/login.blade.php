@@ -69,12 +69,32 @@ if (token) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   axios.get('/me')
     .then(res => {
-      const user  = res.data.user;
-      const roles = res.data.roles;
-      const permissions = res.data.permissions;
+      window.userRoles = res.data.roles || [];
+      window.userPerms = (res.data.permissions || []).map(p => p.name);
 
-      // ✅ Already logged in → redirect to dashboard
-      window.location.href = "{{ route('dashboard') }}";
+      const attendance = res.data.attendance_today || {};
+      const punchedIn = attendance.punched_in;
+      const punchedOut = attendance.punched_out;
+
+      const currentPath = window.location.pathname;
+      const attendancePath = "{{ route('attendances') }}";
+
+      // ✅ Only apply redirect logic if NOT admin
+      if (!userRoles.includes('admin')) {
+        if (!punchedIn) {
+          // Not punched in → force to Attendance page
+          if (!currentPath.includes('/attendances')) {
+            window.location.href = attendancePath;
+            return;
+          }
+        } else if (punchedOut) {
+          // Already punched out → also force back to Attendance page
+          if (!currentPath.includes('/attendances')) {
+            window.location.href = attendancePath;
+            return;
+          }
+        }
+      }
     })
     .catch(() => {
       // ❌ Token invalid → clear and show login form

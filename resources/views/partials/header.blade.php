@@ -6,7 +6,8 @@
       <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
     </li>
     <li class="nav-item d-none d-sm-inline-block">
-      <a href="{{ url('/') }}" class="nav-link">Home</a>
+      <a onclick="logout()"class="nav-link">Logout</a>
+       <!-- <button onclick="logout()" class="btn btn-danger mt-3">Logout</button> -->
     </li>
   </ul>
 
@@ -18,3 +19,16 @@
     </li>
   </ul>
 </nav>
+
+<script>
+function logout() {
+    api.post('/logout')
+      .then(() => {
+        localStorage.clear();
+        window.location.href = "/login";
+      })
+      .catch(err => {
+        console.error("Logout failed:", err);
+      });
+}
+</script>

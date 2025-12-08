@@ -4,25 +4,42 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RoleController extends Controller
 {
-   public function index()
+    // List all roles (except main admin)
+    public function index()
     {
         $roles = Role::with('permissions')
-            ->where('name', '!=', 'admin') // exclude main admin role
+            ->where('name', '!=', 'admin')
             ->get()
             ->map(function ($role) {
                 return [
                     'id' => $role->id,
                     'name' => $role->name,
-                    'permissions' => $role->permissions->pluck('name')->toArray(),
+                    'permissions' => $role->permissions->map(function ($perm) {
+                        return [
+                            'name'  => $perm->name,
+                            'label' => $perm->label ?? ucfirst(str_replace('-', ' ', $perm->name)),
+                        ];
+                    })->toArray(),
                 ];
             });
 
-        return response()->json(['roles' => $roles]);
-    }
+            // 👇 add all permissions list
+        $allPermissions = Permission::all()->map(function ($perm) {
+            return [
+                'name'  => $perm->name,
+                'label' => $perm->label ?? ucfirst(str_replace('-', ' ', $perm->name)),
+            ];
+        });
 
+        return response()->json([
+            'roles' => $roles,
+            'all_permissions' => $allPermissions,
+        ]);
+    }
 
     // Show single role with permissions
     public function show($id)
@@ -33,7 +50,12 @@ class RoleController extends Controller
             'role' => [
                 'id' => $role->id,
                 'name' => $role->name,
-                'permissions' => $role->permissions->pluck('name')->toArray(),
+                'permissions' => $role->permissions->map(function ($perm) {
+                    return [
+                        'name'  => $perm->name,
+                        'label' => $perm->label ?? ucfirst(str_replace('-', ' ', $perm->name)),
+                    ];
+                })->toArray(),
             ]
         ]);
     }
@@ -46,14 +68,12 @@ class RoleController extends Controller
             'permissions' => 'array'
         ]);
 
-        // prevent creating role named "admin"
         if (strtolower($request->name) === 'admin') {
             return response()->json([
                 'message' => 'The "admin" role cannot be created'
             ], 403);
         }
 
-        // 👇 guard_name explicitly set to "api"
         $role = Role::create([
             'name' => $request->name,
             'guard_name' => 'api',
@@ -66,7 +86,12 @@ class RoleController extends Controller
             'role' => [
                 'id' => $role->id,
                 'name' => $role->name,
-                'permissions' => $role->permissions->pluck('name')->toArray(),
+                'permissions' => $role->permissions->map(function ($perm) {
+                    return [
+                        'name'  => $perm->name,
+                        'label' => $perm->label ?? ucfirst(str_replace('-', ' ', $perm->name)),
+                    ];
+                })->toArray(),
             ]
         ]);
     }
@@ -80,7 +105,7 @@ class RoleController extends Controller
             'name' => 'required|string|unique:roles,name,' . $role->id,
             'permissions' => 'array'
         ]);
-        // prevent creating role named "admin"
+
         if (strtolower($request->name) === 'admin') {
             return response()->json([
                 'message' => 'The "admin" role cannot be created'
@@ -95,7 +120,12 @@ class RoleController extends Controller
             'role' => [
                 'id' => $role->id,
                 'name' => $role->name,
-                'permissions' => $role->permissions->pluck('name')->toArray(),
+                'permissions' => $role->permissions->map(function ($perm) {
+                    return [
+                        'name'  => $perm->name,
+                        'label' => $perm->label ?? ucfirst(str_replace('-', ' ', $perm->name)),
+                    ];
+                })->toArray(),
             ]
         ]);
     }
@@ -105,7 +135,6 @@ class RoleController extends Controller
     {
         $role = Role::findOrFail($id);
 
-        // prevent deleting main admin role
         if ($role->name === 'admin') {
             return response()->json(['message' => 'Main admin role cannot be deleted'], 403);
         }
@@ -114,5 +143,4 @@ class RoleController extends Controller
 
         return response()->json(['message' => 'Role deleted successfully']);
     }
-
 }

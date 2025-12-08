@@ -2,7 +2,7 @@
     <h1>Welcome , <span id="username"></span></h1>
     <p>Roles: <span id="roles"></span></p>
     <p>Permissions: <span id="permissions"></span></p>
-    <button onclick="logout()" class="btn btn-danger mt-3">Logout</button>
+    <!-- <button onclick="logout()" class="btn btn-danger mt-3">Logout</button> -->
 </div>
 
 @push('scripts')
@@ -20,13 +20,26 @@ function loadUserData() {
         window.location.href = "/login";
         return;
     }
+    
+    // ✅ Put your formatPermission function here
+    function formatPermission(p) {
+      return (p.label || p.name)
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
 
 
-    axios.get('/me')
+    api.get('/me')
       .then(res => {
         document.getElementById('username').innerText = res.data.user?.name;
-        document.getElementById('roles').innerText = res.data.roles.join(', ');
-        document.getElementById('permissions').innerText = res.data.permissions.join(', ');
+        document.getElementById('roles').innerText = (res.data.roles || []).join(', ');
+       
+        
+          // ✅ Use it here
+          const perms = (res.data.permissions || []).map(formatPermission);
+           console.log('perms', res.data.permissions);
+          document.getElementById('permissions').innerText = perms.join(', ');
+
       })
       .catch(err => {
         console.error("Error fetching user data:", err);
@@ -54,15 +67,5 @@ document.addEventListener("livewire:navigated", () => {
     }
 });
 
-function logout() {
-    axios.post('/logout')
-      .then(() => {
-        localStorage.clear();
-        window.location.href = "/login";
-      })
-      .catch(err => {
-        console.error("Logout failed:", err);
-      });
-}
 </script>
 @endpush

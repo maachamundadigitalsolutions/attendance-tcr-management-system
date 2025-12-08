@@ -20,18 +20,48 @@ class DatabaseSeeder extends Seeder
         $engineerRole = Role::firstOrCreate(['name' => 'engineer', 'guard_name' => 'api']);
 
         // Attendance Permissions (api guard)
-        $markAttendance   = Permission::firstOrCreate(['name' => 'attendance-mark', 'guard_name' => 'api']);
-        $viewAttendances  = Permission::firstOrCreate(['name' => 'attendance-view-all', 'guard_name' => 'api']);
-        $deleteAttendance = Permission::firstOrCreate(['name' => 'attendance-delete', 'guard_name' => 'api']);
+        $markAttendance   = Permission::firstOrCreate(
+            ['name' => 'attendance-mark', 'guard_name' => 'api'],
+            ['label' => 'Attendance Mark']
+        );
+        $viewAttendances  = Permission::firstOrCreate(
+            ['name' => 'attendance-view-all', 'guard_name' => 'api'],
+            ['label' => 'Attendance View All']
+        );
+        $deleteAttendance = Permission::firstOrCreate(
+            ['name' => 'attendance-delete', 'guard_name' => 'api'],
+            ['label' => 'Attendance Delete']
+        );
         
         // TCR Permissions (api guard)
-        $tcrAssign        = Permission::firstOrCreate(['name' => 'tcr-assign', 'guard_name' => 'api']);
-        $tcrViewAll       = Permission::firstOrCreate(['name' => 'tcr-view-all', 'guard_name' => 'api']);
-        $tcrUse           = Permission::firstOrCreate(['name' => 'tcr-use', 'guard_name' => 'api']);
-        $tcrVerify        = Permission::firstOrCreate(['name' => 'tcr-verify', 'guard_name' => 'api']);
-        $tcrDelete        = Permission::firstOrCreate(['name' => 'tcr-delete', 'guard_name' => 'api']);
-        $tcrVerifyCase    = Permission::firstOrCreate(['name' => 'tcr-verify-case', 'guard_name' => 'api']);
-        $tcrVerifyOnline  = Permission::firstOrCreate(['name' => 'tcr-verify-online', 'guard_name' => 'api']);
+        $tcrAssign        = Permission::firstOrCreate(
+            ['name' => 'tcr-assign', 'guard_name' => 'api'],
+            ['label' => 'TCR Assign']
+        );
+        $tcrViewAll       = Permission::firstOrCreate(
+            ['name' => 'tcr-view-all', 'guard_name' => 'api'],
+            ['label' => 'TCR View All']
+        );
+        $tcrUse           = Permission::firstOrCreate(
+            ['name' => 'tcr-use', 'guard_name' => 'api'],
+            ['label' => 'TCR Use']
+        );
+        $tcrVerify        = Permission::firstOrCreate(
+            ['name' => 'tcr-verify', 'guard_name' => 'api'],
+            ['label' => 'TCR Verify']
+        );
+        $tcrDelete        = Permission::firstOrCreate(
+            ['name' => 'tcr-delete', 'guard_name' => 'api'],
+            ['label' => 'TCR Delete']
+        );
+        $tcrVerifyCase    = Permission::firstOrCreate(
+            ['name' => 'tcr-verify-case', 'guard_name' => 'api'],
+            ['label' => 'TCR Verify Case']
+        );
+        $tcrVerifyOnline  = Permission::firstOrCreate(
+            ['name' => 'tcr-verify-online', 'guard_name' => 'api'],
+            ['label' => 'TCR Verify Online']
+        );
 
         // Assign permissions to roles
         $adminRole->syncPermissions([

@@ -67,12 +67,32 @@ class AuthController extends Controller
 
 
     public function me(Request $request) {
+    $user = $request->user();
+
+    $today = now()->toDateString();
+
+    // Find today's attendance for this user
+    $attendance = \App\Models\Attendance::where('user_id', $user->id)
+        ->where('date', $today)
+        ->first();
+
         return response()->json([
-            'user' => $request->user(),
-            'roles' => $request->user()->getRoleNames(),
-            'permissions' => $request->user()->getAllPermissions()->pluck('name'),
+            'user' => $user,
+            'roles' => $user->getRoleNames(),
+            'permissions' => $user->getAllPermissions()->map(function($perm) {
+                return [
+                    'name'  => $perm->name,   // backend identifier
+                    'label' => $perm->label ?? ucfirst(str_replace('-', ' ', $perm->name))
+                ];
+            }),
+            'attendance_today' => [
+            'status'      => $attendance?->status ?? null,
+            'punched_in'  => (bool) $attendance?->time_in,
+            'punched_out' => (bool) $attendance?->time_out,
+            ]
         ]);
     }
+
 
     public function logout(Request $request) {
         $request->user()->tokens()->delete();

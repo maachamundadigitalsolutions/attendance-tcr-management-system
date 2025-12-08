@@ -1,28 +1,32 @@
 // axios-setup.js
 
-// Base URL for your API
-// axios.defaults.baseURL = 'http://127.0.0.1:8001/api/v1';
-axios.defaults.baseURL = 'http://192.168.1.27:8001/api/v1';
+// Use the injected API_URL from Blade
+axios.defaults.baseURL = window.API_URL;
 axios.defaults.headers.common['Accept'] = 'application/json';
 
-// Interceptor: attach token automatically
+// Request interceptor: attach token
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('api_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-}, error => {
-  return Promise.reject(error);
-});
+}, error => Promise.reject(error));
 
-// Optional: handle 401 Unauthorized globally
-axios.interceptors.response.use(response => response, error => {
-  if (error.response && error.response.status === 401) {
-    localStorage.clear();
-    window.location.href = '/login';
+// Response interceptor: handle 401 globally
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('api_token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
   }
-  return Promise.reject(error);
-});
+);
+
+// Export common instance
+window.api = axios;
+
 
 

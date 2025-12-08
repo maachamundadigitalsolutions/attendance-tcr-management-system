@@ -71,18 +71,17 @@
       rolesTable.buttons().container().appendTo('#rolesTable_wrapper .col-md-6:eq(0)');
     }
 
-    // first load
     reloadRoles();
   }
 
   function reloadRoles() {
-    axios.get('/roles').then(res => {
+    api.get('/roles').then(res => {
       rolesTable.clear();
       res.data.roles.forEach(r => {
         rolesTable.row.add([
           r.id,
           r.name,
-          r.permissions.join(', '),
+          r.permissions.map(p => `<span class="badge badge-info mr-1">${p.label}</span>`).join(''),
           `<button class="btn btn-info btn-sm editBtn" data-id="${r.id}">Edit</button>
            <button class="btn btn-danger btn-sm deleteBtn" data-id="${r.id}">Delete</button>`
         ]);
@@ -90,15 +89,17 @@
       rolesTable.draw(false);
 
       // build permissions list
-      const allPerms = [...new Set(res.data.roles.flatMap(r => r.permissions))];
+      const allPerms = [...new Set(res.data.all_permissions)];
       const container = document.getElementById('permissionsList');
       if (container) {
         container.innerHTML = '';
         allPerms.forEach(p => {
+          const value = p.name || p;
+          const label = p.label || p;
           container.insertAdjacentHTML('beforeend', `
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="permissions[]" value="${p}" id="perm_${p}">
-              <label class="form-check-label" for="perm_${p}">${p}</label>
+              <input class="form-check-input" type="checkbox" name="permissions[]" value="${value}" id="perm_${value}">
+              <label class="form-check-label" for="perm_${value}">${label}</label>
             </div>
           `);
         });
@@ -118,12 +119,12 @@
       const roleId = formData.get('role_id');
 
       const request = roleId
-        ? axios.put(`/roles/${roleId}`, payload)
-        : axios.post('/roles', payload);
+        ? api.put(`/roles/${roleId}`, payload)
+        : api.post('/roles', payload);
 
       request.then(() => {
         $('#roleModal').modal('hide');
-        reloadRoles(); // 👈 only reload rows, not re-init
+        reloadRoles();
         Swal.fire({
           toast: true,
           position: 'top-end',
@@ -135,33 +136,15 @@
         });
       }).catch(err => {
         console.error('Role save error:', err);
-
-        if (err.response && err.response.data.errors) {
-          const errors = err.response.data.errors;
-          Object.keys(errors).forEach(field => {
-            errors[field].forEach(msg => {
-              Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'error',
-                title: msg,
-                showConfirmButton: false,
-                timer: 4000,
-                timerProgressBar: true
-              });
-            });
-          });
-        } else {
-          Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'error',
-            title: 'Failed to save role',
-            showConfirmButton: false,
-            timer: 4000,
-            timerProgressBar: true
-          });
-        }
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to save role',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
       });
     }
   });
@@ -169,35 +152,46 @@
   // Edit role
   $('#rolesTable').on('click', '.editBtn', function () {
     const id = $(this).data('id');
-    axios.get(`/roles/${id}`).then(res => {
+    api.get(`/roles/${id}`).then(res => {
       const role = res.data.role;
       document.getElementById('role_id').value = role.id;
       document.getElementById('role_name').value = role.name;
       document.querySelectorAll('#permissionsList input[type=checkbox]').forEach(cb => cb.checked = false);
       role.permissions.forEach(perm => {
-        const checkbox = document.querySelector(`[value="${perm}"]`);
-        if (checkbox) checkbox.checked = true;
-      });
+          const checkbox = document.querySelector(`[value="${perm.name || perm}"]`);
+          if (checkbox) checkbox.checked = true;
+        });
+
       $('#roleModal').modal('show');
     });
   });
 
-  // Delete role
+  // Delete role with SweetAlert confirm
   $('#rolesTable').on('click', '.deleteBtn', function () {
     const id = $(this).data('id');
-    if (confirm("Delete this role?")) {
-      axios.delete(`/roles/${id}`).then(() => {
-        reloadRoles(); // 👈 only reload rows
-        Swal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: 'Role deleted successfully!',
-          showConfirmButton: false,
-          timer: 3000
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "This will delete the role permanently",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        api.delete(`/roles/${id}`).then(() => {
+          reloadRoles();
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Role deleted successfully!',
+            showConfirmButton: false,
+            timer: 3000
+          });
         });
-      });
-    }
+      }
+    });
   });
 
   // Reset form when modal closes
@@ -214,6 +208,5 @@
     Livewire.on('refreshComponent', reloadRoles);
   }
 })();
-
 </script>
 @endpush
