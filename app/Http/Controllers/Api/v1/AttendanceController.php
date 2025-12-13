@@ -27,10 +27,27 @@ class AttendanceController extends Controller
         ]);
     }
 
+    public function show($id)
+    {
+        $attendance = Attendance::findOrFail($id);
+        return response()->json(['data' => $attendance]);
+    }
+
+
     public function punchIn(Request $request)
     {
+        $current = Carbon::now('Asia/Kolkata');
+
+        // ✅ Allow only between 9 AM and 9 PM
+        $startTime = Carbon::parse($current->toDateString().' 09:00:00', 'Asia/Kolkata');
+        $endTime   = Carbon::parse($current->toDateString().' 21:00:00', 'Asia/Kolkata');
+
+        if ($current->lt($startTime) || $current->gt($endTime)) {
+            return response()->json(['message' => 'Punch In allowed only between 9 AM and 9 PM'], 400);
+        }
+
         $alreadyMarked = Attendance::where('user_id', auth()->id())
-            ->where('date', now()->toDateString())
+            ->where('date', $current->toDateString())
             ->exists();
 
         if ($alreadyMarked) {
@@ -41,16 +58,12 @@ class AttendanceController extends Controller
             'in_photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $current = Carbon::now('Asia/Kolkata');
-
         $attendance = new Attendance();
         $attendance->user_id = auth()->id();
         $attendance->date = $current->toDateString();
         $attendance->time_in = $current->format('H:i:s');
 
         $officeStart = Carbon::parse($attendance->date, 'Asia/Kolkata')->setTime(11, 0, 0);
-
-
         $attendance->is_late = $current->gt($officeStart);
 
         if ($request->hasFile('in_photo')) {
@@ -66,8 +79,19 @@ class AttendanceController extends Controller
         ], 201);
     }
 
+
     public function punchOut(Request $request, $id)
     {
+        $current = Carbon::now('Asia/Kolkata');
+
+        // ✅ Allow only between 9 AM and 9 PM
+        $startTime = Carbon::parse($current->toDateString().' 09:00:00', 'Asia/Kolkata');
+        $endTime   = Carbon::parse($current->toDateString().' 21:00:00', 'Asia/Kolkata');
+
+        if ($current->lt($startTime) || $current->gt($endTime)) {
+            return response()->json(['message' => 'Punch Out allowed only between 9 AM and 9 PM'], 400);
+        }
+
         $attendance = Attendance::findOrFail($id);
 
         if ($attendance->time_out) {
@@ -78,21 +102,16 @@ class AttendanceController extends Controller
             'out_photo' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $attendance->time_out = now('Asia/Kolkata')->format('H:i:s');
+        $attendance->time_out = $current->format('H:i:s');
 
         if ($request->hasFile('out_photo')) {
             $path = $request->file('out_photo')->store('attendances/out_selfies', 'public');
             $attendance->out_photo_path = $path;
         }
 
-        // ✅ Attach date to time_in and time_out
         $start = Carbon::parse($attendance->time_in, 'Asia/Kolkata');
         $end   = Carbon::parse($attendance->time_out, 'Asia/Kolkata');
 
-
-
-
-        // ✅ Calculate working hours (can use minutes if needed)
         $attendance->working_hours = $start->diffInHours($end);
 
         $attendance->save();
@@ -102,6 +121,45 @@ class AttendanceController extends Controller
             'attendance' => $attendance
         ]);
     }
+
+    public function update(Request $request, $id)
+    {
+        $attendance = Attendance::findOrFail($id);
+
+        // Update basic fields
+        $attendance->date = $request->date;
+        $attendance->time_in = $request->time_in;
+        $attendance->time_out = $request->time_out;
+        // $attendance->status = $request->status;
+
+        // Replace In Photo if new uploaded
+        if ($request->hasFile('in_photo')) {
+            $path = $request->file('in_photo')->store('attendances/in_selfies', 'public');
+            dd($path);
+            $attendance->in_photo_path = $path;
+        }
+
+        // Replace Out Photo if new uploaded
+        // if ($request->hasFile('out_photo')) {
+        //     $path = $request->file('out_photo')->store('attendances/out_selfies', 'public');
+        //     $attendance->out_photo_path = $path;
+        // }
+
+        if ($request->hasFile('out_photo')) {
+            \Log::info('New out_photo uploaded: '.$request->file('out_photo')->getClientOriginalName());
+            $path = $request->file('out_photo')->store('attendances', 'public');
+            $attendance->out_photo_path = $path;
+        }
+
+
+        $attendance->save();
+
+        return response()->json([
+            'message' => 'Attendance updated successfully',
+            'data' => $attendance
+        ]);
+    }
+
 
     public function destroy($id)
     {

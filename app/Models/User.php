@@ -21,11 +21,30 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
         'user_id',   // ✅ add this
+        'name',
+        'address',
+        'phone',
         'email',
+        'shirt_size',
+        'tshirt_size',
+        'trouser_size',
+        'jeans_size',
+        'dob',
+        'doj',
+        'education',
+        'total_exp',
+        'summary_exp',
+        'emergency_contact',
+        'product',
         'password',
         'role,'
+    ];
+
+
+    protected $casts = [
+    'dob' => 'date',
+    'doj' => 'date',
     ];
 
     /**

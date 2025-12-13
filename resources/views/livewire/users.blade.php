@@ -12,12 +12,27 @@
           <thead>
             <tr>
               <th>ID</th>
-              <th>Name</th>
               <th>User ID</th>
               <th>Role</th>
+              <th>Name</th>
+              <th>address</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>DOB</th>
+              <th>DOJ</th>
+              <th>Shirt Size</th>
+              <th>Tshirt Size</th>
+              <th>Trouser Size</th>
+              <th>Jeans_size</th>
+              <th>Education</th>
+              <th>summary_exp</th>
+              <th>Total Exp</th>
+              <th>Emergency Contact.</th>
+              <th>Product</th>
               <th>Actions</th>
             </tr>
           </thead>
+
           <tbody></tbody>
         </table>
       </div>
@@ -46,6 +61,77 @@
               <input type="text" id="user_id" class="form-control" required>
             </div>
 
+            <div class="form-group">
+              <label>Address</label>
+              <textarea id="address" class="form-control"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="text" id="phone" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" id="email" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Shirt Size</label>
+              <input type="text" id="shirt_size" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>T-Shirt Size</label>
+              <input type="text" id="tshirt_size" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Trouser Size</label>
+              <input type="text" id="trouser_size" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Jeans Size</label>
+              <input type="text" id="jeans_size" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Date of Birth</label>
+              <input type="date" id="dob" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Date of Joining</label>
+              <input type="date" id="doj" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Total Experience</label>
+              <input type="text" id="total_exp" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Summary Experience</label>
+              <input type="text" id="summary_exp" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Education</label>
+              <input type="text" id="education" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Emergency Contact No.</label>
+              <input type="text" id="emergency_contact" class="form-control">
+            </div>
+
+            <div class="form-group">
+              <label>Product</label>
+              <input type="text" id="product" class="form-control">
+            </div>
+
+
             <div class="form-group" id="password-group">
               <label>Password</label>
               <input type="password" id="password" class="form-control">
@@ -69,6 +155,7 @@
 </div>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (function () {
   let usersTable;
@@ -94,8 +181,22 @@
   window.openCreateModal = function() {
     loadRolesDropdown();
     document.getElementById('editId').value = '';
-    document.getElementById('name').value = '';
     document.getElementById('user_id').value = '';
+    document.getElementById('name').value = '';
+    document.getElementById('address').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('shirt_size').value = '';
+    document.getElementById('tshirt_size').value = '';
+    document.getElementById('trouser_size').value = '';
+    document.getElementById('jeans_size').value = '';
+    document.getElementById('dob').value = '';
+    document.getElementById('doj').value = '';
+    document.getElementById('education').value = '';
+    document.getElementById('total_exp').value = '';
+    document.getElementById('summary_exp').value = '';
+    document.getElementById('emergency_contact').value = '';
+    document.getElementById('product').value = '';
     document.getElementById('password').value = '';
     $('#password-group').show();
     $('#userModal').modal('show');
@@ -115,6 +216,14 @@
       document.getElementById('editId').value = u.id;
       document.getElementById('name').value = u.name;
       document.getElementById('user_id').value = u.user_id;
+      document.getElementById('phone').value = u.phone ?? '';
+      document.getElementById('email').value = u.email ?? '';
+      document.getElementById('dob').value = u.dob;
+      document.getElementById('doj').value = u.doj;
+      document.getElementById('total_exp').value = u.total_exp ?? '';
+      document.getElementById('education').value = u.education ?? '';
+      document.getElementById('product').value = u.product ?? '';
+      
       document.getElementById('password').value = '';
       $('#password-group').hide();
       $('#userModal').modal('show');
@@ -173,15 +282,32 @@
         (res.data?.data || []).forEach(u => {
           const roleName = u.roles && u.roles.length ? u.roles[0].name : '';
           usersTable.row.add([
-            u.id,
-            u.name,
-            u.user_id,
-            roleName,
-            `
-              <button class="btn btn-sm btn-info editBtn" data-id="${u.id}">Edit</button>
-              <button class="btn btn-sm btn-danger deleteBtn" data-id="${u.id}">Delete</button>
-            `
-          ]);
+              u.id,
+              u.user_id,
+              roleName,
+              u.name,
+              u.address || '-',
+              u.phone || '-',
+              u.email || '-',
+              u.dob || '-',
+              u.doj || '-',
+              u.shirt_size || '-',
+              u.tshirt_size || '-',
+              u.trouser_size || '-',
+              u.jeans_size || '-',
+             
+              u.education || '-',
+              u.summary_exp || '-',
+              u.total_exp || '-',
+              u.emergency_contact || '-',
+              u.product || '-',
+              `
+                <button class="btn btn-sm btn-info editBtn" data-id="${u.id}">Edit</button>
+                <button class="btn btn-sm btn-danger deleteBtn" data-id="${u.id}">Delete</button>
+              `
+            ]);
+
+
         });
         usersTable.draw(false);
 
@@ -214,15 +340,31 @@
 
   // 👉 Form submit
   document.addEventListener('submit', function(e) {
+     console.log('testsgdgsd22222');
     if (e.target && e.target.id === 'userForm') {
       e.preventDefault();
+           
       const id = document.getElementById('editId').value;      
       const payload = {
-        name: document.getElementById('name').value,
-        user_id: document.getElementById('user_id').value,
-        password: document.getElementById('password').value,
-        role: document.getElementById('role').value
-      };
+          name: document.getElementById('name').value,
+          user_id: document.getElementById('user_id').value,
+          password: document.getElementById('password').value,
+          role: document.getElementById('role').value,
+          address: document.getElementById('address').value,
+          phone: document.getElementById('phone').value,
+          email: document.getElementById('email').value,
+          shirt_size: document.getElementById('shirt_size').value,
+          tshirt_size: document.getElementById('tshirt_size').value,
+          trouser_size: document.getElementById('trouser_size').value,
+          jeans_size: document.getElementById('jeans_size').value,
+          dob: document.getElementById('dob').value,
+          doj: document.getElementById('doj').value,
+          total_exp: document.getElementById('total_exp').value,
+          summary_exp: document.getElementById('summary_exp').value,
+          education: document.getElementById('education').value,
+          emergency_contact: document.getElementById('emergency_contact').value,
+          product: document.getElementById('product').value
+        };
 
       const request = id
         ? axios.put(`/users/${id}`, payload)

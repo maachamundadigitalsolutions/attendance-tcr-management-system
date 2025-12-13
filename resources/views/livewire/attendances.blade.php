@@ -61,9 +61,90 @@
       </div>
     </div>
 
+   <!-- Edit Modal -->
+    {{-- Admin / EDIT MODEL --}}
+  <div class="modal fade" id="attendanceEditModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        
+        <form id="attendanceEditForm"> 
+          <div class="modal-header">
+            <h5 class="modal-title">Attendance</h5>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+
+          <div class="modal-body">
+            <input type="hidden" id="editId">
+
+            <!-- Date -->
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="date" name="date" class="form-control">
+            </div>
+
+            <!-- In Time -->
+            <div class="form-group">
+              <label>In Time</label>
+              <input type="time" id="time_in" name="time_in" class="form-control">
+            </div>
+
+           <!-- In Photo -->
+            <div class="form-group" id="inPhotoBlock">
+              <label>In Photo</label>
+              <!-- Old photo preview -->
+              <div>
+                <img id="preview_in_photo" src="" width="100" style="margin-bottom:10px;">
+              </div>
+              <input type="file" id="in_photo" name="in_photo" class="form-control" accept="image/*" capture="camera">
+            </div>
+
+            <!-- Out Time -->
+            <div class="form-group">
+              <label>Out Time</label>
+              <input type="time" id="time_out" name="time_out" class="form-control">
+            </div>
+
+           <!-- Out Photo -->
+          <div class="form-group" id="outPhotoBlock">
+            <label>Out Photo</label>
+            <!-- Old photo preview -->
+            <div>
+              <img id="preview_out_photo" src="" width="100" style="margin-bottom:10px;">
+            </div>
+            <input type="file" id="out_photo" name="out_photo" class="form-control" accept="image/*" capture="camera">
+          </div>
+
+            <!-- Status -->
+            <div class="form-group">
+              <label>Status</label>
+              <select id="status" name="status" class="form-control">
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Leave">Leave</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Save</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+
+
 </div>
 
 @push('scripts')
+<!-- DataTables & Plugins -->
+<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
+<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -141,11 +222,30 @@
               </td>
               <td>${a.status ?? 'Present'}</td>
               <td>
+                ${(userPerms.includes('attendance-update') || userPerms.includes('attendance-manage') || userPerms.includes('attendance-delete'))
+                  ? `<button class="btn btn-sm btn-primary" onclick="updateAttendance(${a.id})">Update</button>`
+                  : ''}
                 ${userPerms.includes('attendance-delete')
                   ? `<button class="btn btn-sm btn-danger" onclick="deleteAttendance(${a.id})">Delete</button>`
                   : ''}
               </td>
+
             </tr>`;
+        });
+
+         // Initialize DataTable (destroy first if already exists)
+        if ($.fn.DataTable.isDataTable('#attendanceTable')) {
+          $('#attendanceTable').DataTable().destroy();
+        }
+        $('#attendanceTable').DataTable({
+          responsive: true,
+          autoWidth: false,
+          pageLength: 10,
+          lengthChange: true,
+          ordering: true,
+          columnDefs: [
+            { targets: [4,6,8], orderable: false }
+          ]
         });
 
         // Decide Punch In / Punch Out button
@@ -171,7 +271,7 @@
     document.getElementById('out_photo').value = '';
     document.getElementById('inPhotoBlock').style.display = 'block';
     document.getElementById('outPhotoBlock').style.display = 'none';
-    $('#attendanceModal').modal('show');
+    $('#attendanceEditModal').modal('show');
 
     document.getElementById('attendanceForm').onsubmit = function(e) {
       e.preventDefault();
@@ -240,6 +340,91 @@
       }
     });
   }
+
+  function formatTimeForInput(timeStr) {
+    if (!timeStr) return '';
+    // Expect "HH:MM:SS" → return "HH:MM"
+    const parts = timeStr.split(':');
+    if (parts.length < 2) return '';
+    return `${parts[0]}:${parts[1]}`;
+  }
+
+window.updateAttendance = async function(id) {
+  try {
+    const res = await api.get(`/attendances/${id}`);
+    const record = res.data.data;
+
+    // Helper: convert DD-MM-YYYY → YYYY-MM-DD
+   function formatDateForInput(dateStr) {
+  if (!dateStr) return '';
+    const parts = dateStr.split('-'); // ["08","12","2025"]
+    if (parts.length !== 3) return '';
+    return `${parts[2]}-${parts[1]}-${parts[0]}`; // "2025-12-08"
+  }
+
+  
+
+    // Fill fields
+    document.getElementById('editId').value = record.id;
+    document.getElementById('date').value = formatDateForInput(record.date);
+    // Time fix (HH:MM:SS → HH:MM)
+    document.getElementById('time_in').value = formatTimeForInput(record.time_in);
+    document.getElementById('time_out').value = formatTimeForInput(record.time_out)
+    document.getElementById('status').value = record.status || 'Present';
+
+    // Show old photo previews
+    document.getElementById('preview_in_photo').src = record.in_photo_path 
+      ? '/storage/' + record.in_photo_path 
+      : '';
+    document.getElementById('preview_out_photo').src = record.out_photo_path 
+      ? '/storage/' + record.out_photo_path 
+      : '';
+
+    // Show modal
+    $('#attendanceEditModal').modal('show');
+
+    // Submit handler
+    document.getElementById('attendanceEditForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const formData = new FormData();
+          formData.append('date', document.getElementById('date').value);
+          formData.append('time_in', document.getElementById('time_in').value);
+          formData.append('time_out', document.getElementById('time_out').value);
+          formData.append('status', document.getElementById('status').value);
+
+          const inPhoto = document.getElementById('in_photo').files[0];
+          if (inPhoto) formData.append('in_photo', inPhoto);
+
+          const outPhoto = document.getElementById('out_photo').files[0];
+          if (outPhoto) formData.append('out_photo', outPhoto);
+          console.log('formData', formData);
+          
+
+          // Always POST with _method=PUT
+          const updateRes = await api.post(`/attendances/${id}?_method=PUT`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+
+
+      $('#attendanceEditModal').modal('hide');
+      await loadAttendances();
+      await refreshSidebar();
+
+      Swal.fire({
+        toast:true,
+        position:'top-end',
+        icon:'success',
+        title:updateRes.data.message,
+        showConfirmButton:false,
+        timer:3000
+      });
+    };
+  } catch (err) {
+    console.error("Error fetching attendance record:", err);
+  }
+};
+
+
 
   document.addEventListener("DOMContentLoaded", initAttendance);
   document.addEventListener('livewire:navigated', initAttendance);

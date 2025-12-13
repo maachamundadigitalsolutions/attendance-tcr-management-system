@@ -9,7 +9,7 @@ class Attendance extends Model
     protected $fillable = [
         'user_id', 'date', 'time_in', 'time_out',
         'in_photo_path', 'out_photo_path',
-         'status', 'remarks', 'working_hours'
+         'status', 'remarks', 'working_hours', 'status',
     ];
 
     protected $casts = [

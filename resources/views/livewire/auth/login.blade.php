@@ -52,22 +52,19 @@
 <script src="{{ asset('adminlte/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> -->
  
- {{-- Custom axios setup --}}
+{{-- Custom axios setup --}}
 <script src="/js/axios.min.js"></script>
+<script> window.API_URL = "{{ config('app.api_url') }}"; </script>
 <script src="{{ asset('js/axios-setup.js') }}"></script>
-
 <script>
-  axios.defaults.baseURL = 'http://192.168.1.27:8001/api/v1';
-
-  axios.defaults.headers.common['Accept'] = 'application/json';
 
   const token = localStorage.getItem('api_token');
+  console.log('token', token);
+  
 
 if (token) {
-  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  axios.get('/me')
+  api.get('/me')
     .then(res => {
       window.userRoles = res.data.roles || [];
       window.userPerms = (res.data.permissions || []).map(p => p.name);

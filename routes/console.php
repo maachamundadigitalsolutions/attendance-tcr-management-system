@@ -10,4 +10,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // ✅ Attendance reminder scheduler
-Schedule::command('attendance:reminders')->everyFiveMinutes();
+Schedule::command('attendance:reminders')
+    ->everyThirtyMinutes()
+    ->between('9:00', '23:00'); // run checks every 30 min
+

@@ -19,13 +19,13 @@ class AttendanceReminders extends Command
         $today = $now->toDateString();
         $this->info("=== Checking reminders at ".$now." ===");
 
-        $workStart = Carbon::parse($today.' 09:00:00', 'Asia/Kolkata');
-        $workEnd   = Carbon::parse($today.' 21:00:00', 'Asia/Kolkata');
+        // Punch In window: 9 AM to 11 AM
+        $punchInStart = Carbon::parse($today.' 09:00:00', 'Asia/Kolkata');
+        $punchInEnd   = Carbon::parse($today.' 11:00:00', 'Asia/Kolkata');
 
-        if ($now->lt($workStart) || $now->gt($workEnd)) {
-            $this->info("Outside work window, skipping reminders.");
-            return;
-        }
+        // Punch Out window: 7 PM to 9 PM
+        $punchOutStart = Carbon::parse($today.' 19:00:00', 'Asia/Kolkata');
+        $punchOutEnd   = Carbon::parse($today.' 21:00:00', 'Asia/Kolkata');
 
         $users = User::all();
 
@@ -34,21 +34,15 @@ class AttendanceReminders extends Command
                 ->where('date', $today)
                 ->first();
 
-            // Punch In reminder
-            if ($now->greaterThanOrEqualTo($workStart) && !$attendance) {
+            // 🔔 Punch In reminder (between 9–11 AM if not punched in)
+            if ($now->between($punchInStart, $punchInEnd) && !$attendance) {
                 $user->notify(new AttendanceNotification('punch_in_reminder'));
                 $this->info("👉 Punch In reminder sent to user ".$user->id);
             }
 
-            // Punch Out reminder
+            // 🔔 Punch Out reminder (between 7–9 PM if not punched out)
             if ($attendance && $attendance->time_in && !$attendance->time_out) {
-                $start = Carbon::createFromFormat('H:i:s', $attendance->time_in, 'Asia/Kolkata');
-                $minutesWorked = $start->diffInMinutes($now);
-                $hoursWorked = $minutesWorked / 60;
-
-                $this->info("User ".$user->id." has worked ".$hoursWorked." hours.");
-
-                if ($hoursWorked >= 9) {
+                if ($now->between($punchOutStart, $punchOutEnd)) {
                     $user->notify(new AttendanceNotification('punch_out_reminder', $attendance));
                     $this->info("👉 Punch Out reminder sent to user ".$user->id);
                 }

@@ -41,10 +41,12 @@ Route::prefix('v1')->group(function () {
 
         // Attendances
         Route::get('/attendances', [AttendanceController::class, 'index']);
+        Route::get('/attendances/{id}', [AttendanceController::class, 'show']);
         Route::post('/attendances/punch-in', [AttendanceController::class, 'punchIn'])
             ->middleware('permission:attendance-mark');
         Route::post('/attendances/{id}/punch-out', [AttendanceController::class, 'punchOut'])
             ->middleware('permission:attendance-mark');
+        Route::put('/attendances/{id}', [AttendanceController::class, 'update']);
         Route::delete('/attendances/{id}', [AttendanceController::class, 'destroy'])
             ->middleware('permission:attendance-view-all'); 
 
@@ -63,7 +65,9 @@ Route::prefix('v1')->group(function () {
 
         // Notifications
         Route::get('/notifications', [NotificationController::class, 'index']);
-        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+            //  ->middleware('permission:view notifications');
+        Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+            // ->middleware('permission:mark notifications');
     });
 });
 

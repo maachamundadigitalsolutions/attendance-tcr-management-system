@@ -14,6 +14,19 @@ return new class extends Migration
             $table->string('user_id')->unique(); // 👈 unique user_id  // engineer nu unique ID
             $table->string('email')->nullable()->unique(); // 👈 nullable + unique, no change()
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('address')->nullable();
+            $table->string('phone')->nullable();
+            $table->enum('shirt_size', ['XS','S','M','L','XL','XXL'])->nullable();
+            $table->enum('tshirt_size', ['XS','S','M','L','XL','XXL'])->nullable();
+            $table->enum('trouser_size', ['28','30','32','34','36','38'])->nullable();
+            $table->enum('jeans_size', ['28','30','32','34','36','38', '46', '48', '50', '52'])->nullable();
+            $table->date('dob')->nullable();
+            $table->date('doj')->nullable();
+            $table->string('education')->nullable();
+            $table->string('total_exp')->nullable();
+            $table->string('summary_exp')->nullable();
+            $table->string('emergency_contact')->nullable();
+            $table->string('product')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

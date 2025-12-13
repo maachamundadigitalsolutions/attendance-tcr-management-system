@@ -23,6 +23,20 @@ class UserController extends Controller
         $validated = $request->validate([
             'user_id'  => 'required|digits_between:5,15|unique:users,user_id',
             'name'     => 'required|string|min:3',
+            'address'     => 'required|string|min:3',
+            'email'     => 'required|email|unique:email',
+            'phone'     => 'required|string|min:10',
+            'shirt_size'     => 'required|string|min:2',
+            'tshirt_size'     => 'required|string|min:2',
+            'trouser_size'     => 'required|string|min:2',
+            'jeans_size'     => 'required|string|min:2',
+            'dob'     => 'required|string|min:2',
+            'doj'     => 'required|string|min:2',
+            'education'     => 'required|string|min:2',
+            'total_exp'     => 'required|string|min:2',
+            'summary_exp'     => 'required|string|min:2',
+            'emergency_contact'     => 'required|string|min:2',
+            'product'     => 'required|string|min:2',
             'password' => 'required|min:6',
             'role' => 'required|exists:roles,id',
         ]);
@@ -31,6 +45,18 @@ class UserController extends Controller
             'name'     => $validated['name'],
             'user_id'  => $validated['user_id'],
             'email'    => null,
+            'phone'    => null,
+            'shirt_size'    => null,
+            'tshirt_size'    => null,
+            'trouser_size'    => null,
+            'jeans_size'    => null,
+            'dob'    => null,
+            'doj'    => null,
+            'education'    => null,
+            'total_exp'    => null,
+            'summary_exp'    => null,
+            'emergency_contact'    => null,
+            'product'    => null,
             'password' => Hash::make($validated['password']),
         ]);
         
@@ -57,14 +83,35 @@ class UserController extends Controller
             return response()->json(['message' => 'Main admin role cannot be changed'], 403);
         }
 
-        $validated = $request->validate([
-            'name' => 'required|string|min:3',
-            'role' => 'required|exists:roles,id',
-        ]);
+            $validated = $request->validate([
+                'name'              => 'required|string|min:3',
+                'address'           => 'nullable|string|max:255',
+                'phone'             => 'nullable|string|max:20',
+                'email'             => 'nullable|email|max:255',
+                'dob'               => 'nullable|date',
+                'doj'               => 'nullable|date',
+                'education'         => 'nullable|string|max:255',
+                'total_exp'         => 'nullable|string|max:50',
+                'summary_exp'       => 'nullable|string|max:255',
+                'emergency_contact' => 'nullable|string|max:50',
+                'product'           => 'nullable|string|max:255',
+                'role'              => 'required|exists:roles,id',
+            ]);
 
-        $user->update([
-            'name' => $validated['name'],
-        ]);
+            // update allowed fields
+            $user->update([
+                'name'              => $validated['name'],
+                'address'           => $validated['address'] ?? $user->address,
+                'phone'             => $validated['phone'] ?? $user->phone,
+                'email'             => $validated['email'] ?? $user->email,
+                'dob'               => $validated['dob'] ?? $user->dob,
+                'doj'               => $validated['doj'] ?? $user->doj,
+                'education'         => $validated['education'] ?? $user->education,
+                'total_exp'         => $validated['total_exp'] ?? $user->total_exp,
+                'summary_exp'       => $validated['summary_exp'] ?? $user->summary_exp,
+                'emergency_contact' => $validated['emergency_contact'] ?? $user->emergency_contact,
+                'product'           => $validated['product'] ?? $user->product,
+            ]);
 
         // fetch role by ID
         $role = Role::find($validated['role']);

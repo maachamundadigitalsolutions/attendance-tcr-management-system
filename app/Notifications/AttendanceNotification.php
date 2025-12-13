@@ -20,7 +20,7 @@ class AttendanceNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database']; // only in-app notifications
     }
 
     public function toDatabase($notifiable)
@@ -38,13 +38,13 @@ class AttendanceNotification extends Notification
         if ($this->type === 'punch_in_reminder') {
             return [
                 'title' => 'Punch In Reminder',
-                'message' => 'Please punch in for your shift.',
+                'message' => 'Please punch in between 9–11 AM.',
             ];
         }
 
         return [
             'title' => 'Punch Out Reminder',
-            'message' => 'You have completed 9 hours. Please punch out.',
+            'message' => 'Please punch out between 7–9 PM.',
             'attendance_id' => $this->attendance ? $this->attendance->id : null,
         ];
     }
