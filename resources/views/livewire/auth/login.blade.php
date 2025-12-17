@@ -44,9 +44,9 @@
           </div>
         </div>
       </form>
-    </div> <!-- /.login-card-body -->
-  </div>   <!-- /.card -->
-</div>     <!-- /.login-box -->
+    </div> {{-- /.login-card-body --}} 
+  </div> {{-- /.card --}}  
+</div>   {{-- /.login-box --}}  
 
 {{-- Scripts --}}
 <script src="{{ asset('adminlte/plugins/jquery/jquery.min.js') }}"></script>
@@ -54,61 +54,67 @@
 <script src="{{ asset('adminlte/dist/js/adminlte.min.js') }}"></script>
  
 {{-- Custom axios setup --}}
-<script src="/js/axios.min.js"></script>
 <script> window.API_URL = "{{ config('app.api_url') }}"; </script>
+<script src="/js/axios.min.js"></script>
 <script src="{{ asset('js/axios-setup.js') }}"></script>
+
 <script>
 
   const token = localStorage.getItem('api_token');
-  console.log('token', token);
-  
 
-if (token) {
-  api.get('/me')
-    .then(res => {
-      window.userRoles = res.data.roles || [];
-      window.userPerms = (res.data.permissions || []).map(p => p.name);
+  if (token) {
+    api.get('/me')
+      .then(res => {
+        window.userRoles = res.data.roles || [];
+        window.userPerms = (res.data.permissions || []).map(p => p.name);
 
-      const attendance = res.data.attendance_today || {};
-      const punchedIn = attendance.punched_in;
-      const punchedOut = attendance.punched_out;
+        const attendance = res.data.attendance_today || {};
+        const punchedIn = attendance.punched_in;
+        const punchedOut = attendance.punched_out;
 
-      const currentPath = window.location.pathname;
-      const attendancePath = "{{ route('attendances') }}";
+        const currentPath = window.location.pathname;
+        const attendancePath = "{{ route('attendances') }}";
+       
+        
 
-      // ✅ Only apply redirect logic if NOT admin
-      if (!userRoles.includes('admin')) {
-        if (!punchedIn) {
-          // Not punched in → force to Attendance page
-          if (!currentPath.includes('/attendances')) {
-            window.location.href = attendancePath;
-            return;
+        // ✅ Only apply redirect logic if admin
+        if (userRoles.includes("admin")) {
+        // Redirect to dashboard
+        window.location.href = "{{ route('dashboard') }}";
+        }else{
+          if (!punchedIn) {
+             console.log('punchedIn', punchedIn);
+            // Not punched in → force to Attendance page
+            if (!currentPath.includes('/attendances')) {
+              window.location.href = attendancePath;
+              return;
+            }
+          } else if (punchedOut) {
+            // Already punched out → also force back to Attendance page
+            if (!currentPath.includes('/attendances')) {
+              window.location.href = attendancePath;
+              return;
+            }
           }
-        } else if (punchedOut) {
-          // Already punched out → also force back to Attendance page
-          if (!currentPath.includes('/attendances')) {
-            window.location.href = attendancePath;
-            return;
-          }
+          
         }
-      }
-    })
-    .catch(() => {
-      // ❌ Token invalid → clear and show login form
-      localStorage.clear();
-      document.getElementById('loginBox').style.display = 'block';
-    });
-} else {
-  // ❌ No token → show login form
-  document.getElementById('loginBox').style.display = 'block';
-}
+      })
+      .catch(() => {
+        // ❌ Token invalid → clear and show login form
+        localStorage.clear();
+        document.getElementById('loginBox').style.display = 'block';
+      });
+  } else {
+    // ❌ No token → show login form
+    document.getElementById('loginBox').style.display = 'block';
+  }
 
 
   // Login form submit
   document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    axios.post("/login", {
+    api.post("/login", {
         loginField: document.getElementById('email').value,
         password: document.getElementById('password').value
     })
@@ -117,6 +123,13 @@ if (token) {
         const user  = res.data.user;
         const roles = res.data.roles;
         const permissions = res.data.permissions;
+        
+        const attendance = res.data.attendance_today || {};
+        const punchedIn = attendance.punched_in;
+        const punchedOut = attendance.punched_out;
+
+        const currentPath = window.location.pathname;
+        const attendancePath = "{{ route('attendances') }}";
 
         // Save to localStorage
         localStorage.setItem('api_token', token);
@@ -125,7 +138,28 @@ if (token) {
         localStorage.setItem('permissions', JSON.stringify(permissions));
 
         // Redirect to dashboard
+
+        // ✅ Only apply redirect logic if admin
+        if (roles.includes("admin")) {
+        // Redirect to dashboard
         window.location.href = "{{ route('dashboard') }}";
+        }else{
+          if (!punchedIn) {
+             console.log('punchedIn', punchedIn);
+            // Not punched in → force to Attendance page
+            if (!currentPath.includes('/attendances')) {
+              window.location.href = attendancePath;
+              return;
+            }
+          } else if (punchedOut) {
+            // Already punched out → also force back to Attendance page
+            if (!currentPath.includes('/attendances')) {
+              window.location.href = attendancePath;
+              return;
+            }
+          }
+          
+        }
     })
     .catch(err => {
         console.error(err);

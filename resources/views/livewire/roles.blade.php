@@ -68,7 +68,7 @@
         autoWidth: false,
         buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"]
       });
-      rolesTable.buttons().container().appendTo('#rolesTable_wrapper .col-md-6:eq(0)');
+      rolesTable?.buttons().container().appendTo('#rolesTable_wrapper .col-md-6:eq(0)');
     }
 
     reloadRoles();

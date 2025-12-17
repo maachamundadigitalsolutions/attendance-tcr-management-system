@@ -135,7 +135,7 @@ class AttendanceController extends Controller
         // Replace In Photo if new uploaded
         if ($request->hasFile('in_photo')) {
             $path = $request->file('in_photo')->store('attendances/in_selfies', 'public');
-            dd($path);
+            // dd($path);
             $attendance->in_photo_path = $path;
         }
 

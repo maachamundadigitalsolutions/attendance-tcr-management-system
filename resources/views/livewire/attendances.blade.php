@@ -2,7 +2,7 @@
     <h1>Attendance Management</h1>
 
     {{-- Employee Form --}}
-    <div id="attendanceFormBlock" style="display:none;">
+    <div id="attendanceEmployeeFormBlock" style="display:none;">
       <button class="btn btn-primary mb-3" onclick="openCreateModal()">Mark Attendance</button>
     </div>
 
@@ -28,10 +28,10 @@
     </div>
 
   <!-- Modal -->
-    <div class="modal fade" id="attendanceModal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="attendanceEmployeeModal" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
-          <form id="attendanceForm">
+          <form id="attendanceEmployeeForm">
             <div class="modal-header">
               <h5 class="modal-title">Attendance</h5>
               <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -40,15 +40,15 @@
               <input type="hidden" id="editId">
 
               <!-- In Photo -->
-              <div class="form-group" id="inPhotoBlock">
+              <div class="form-group" id="inPhotoEmployeeBlock">
                 <label>In Photo</label>
-                <input type="file" id="in_photo" name="in_photo" class="form-control" accept="image/*" capture="camera">
+                <input type="file" id="in_photo_employee" name="in_photo_employee" class="form-control" accept="image/*" capture="camera">
               </div>
 
               <!-- Out Photo -->
-              <div class="form-group" id="outPhotoBlock" style="display:none;">
+              <div class="form-group" id="outPhotoEmployeeBlock" style="display:none;">
                 <label>Out Photo</label>
-                <input type="file" id="out_photo" name="out_photo" class="form-control" accept="image/*" capture="camera">
+                <input type="file" id="out_photo_employee" name="out_photo_employee" class="form-control" accept="image/*" capture="camera">
               </div>
             </div>
 
@@ -74,7 +74,7 @@
           </div>
 
           <div class="modal-body">
-            <input type="hidden" id="editId">
+            <input type="hidden" id="recordId">
 
             <!-- Date -->
             <div class="form-group">
@@ -89,7 +89,7 @@
             </div>
 
            <!-- In Photo -->
-            <div class="form-group" id="inPhotoBlock">
+            <div class="form-group">
               <label>In Photo</label>
               <!-- Old photo preview -->
               <div>
@@ -105,7 +105,7 @@
             </div>
 
            <!-- Out Photo -->
-          <div class="form-group" id="outPhotoBlock">
+          <div class="form-group">
             <label>Out Photo</label>
             <!-- Old photo preview -->
             <div>
@@ -179,7 +179,7 @@
       return a?.date === today && a.user_id === authUserId;
     });
 
-    const block = document.getElementById('attendanceFormBlock');
+    const block = document.getElementById('attendanceEmployeeFormBlock');
     block.style.display = 'block';
 
     if (!record) {
@@ -196,63 +196,106 @@
 
 
 
-  function loadAttendances(userPerms = []) {
-    api.get('/attendances')
-      .then(res => {
-        const attendances = res.data.data;
-        const tbody = document.getElementById('attendance-table');
-        if (!tbody) return;
+  // function loadAttendances(userPerms = []) {
+  //   api.get('/attendances')
+  //     .then(res => {
+  //       const attendances = res.data.data;
+  //       const tbody = document.getElementById('attendance-table');
+  //       if (!tbody) return;
 
-        tbody.innerHTML = '';
-        attendances.forEach(a => {
-          tbody.innerHTML += `
-            <tr>
-              <td>${a.id}</td>
-              <td>${a.user?.name ?? a.user_id}</td>
-              <td>${a.date}</td>
-              <td>${a.time_in ?? ''}</td>
-              <td>${a.in_photo_path 
-                ? `<img src="/storage/${a.in_photo_path}" width="60" style="cursor:pointer" onclick="previewPhoto('/storage/${a.in_photo_path}')">`
-                : 'No In Photo'}
-              </td>
-              <td>${a.time_out ?? ''}</td>
-              <td>${a.out_photo_path 
-                ? `<img src="/storage/${a.out_photo_path}" width="60" style="cursor:pointer" onclick="previewPhoto('/storage/${a.out_photo_path}')">`
-                : 'No Out Photo'}
-              </td>
-              <td>${a.status ?? 'Present'}</td>
-              <td>
-                ${(userPerms.includes('attendance-update') || userPerms.includes('attendance-manage') || userPerms.includes('attendance-delete'))
-                  ? `<button class="btn btn-sm btn-primary" onclick="updateAttendance(${a.id})">Update</button>`
-                  : ''}
-                ${userPerms.includes('attendance-delete')
-                  ? `<button class="btn btn-sm btn-danger" onclick="deleteAttendance(${a.id})">Delete</button>`
-                  : ''}
-              </td>
+  //       tbody.innerHTML = ''; // clear old rows
+  //       attendances.forEach(a => {
+  //         tbody.innerHTML += `
+  //           <tr>
+  //             <td>${a.id}</td>
+  //             <td>${a.user?.name ?? a.user_id}</td>
+  //             <td>${a.date}</td>
+  //             <td>${a.time_in ?? ''}</td>
+  //             <td>${a.in_photo_path 
+  //               ? `<img src="/storage/${a.in_photo_path}" width="60" style="cursor:pointer" onclick="previewPhoto('/storage/${a.in_photo_path}')">`
+  //               : 'No In Photo'}
+  //             </td>
+  //             <td>${a.time_out ?? ''}</td>
+  //             <td>${a.out_photo_path 
+  //               ? `<img src="/storage/${a.out_photo_path}" width="60" style="cursor:pointer" onclick="previewPhoto('/storage/${a.out_photo_path}')">`
+  //               : 'No Out Photo'}
+  //             </td>
+  //             <td>${a.status ?? 'Present'}</td>
+  //             <td>
+  //               ${(userPerms.includes('attendance-update') || userPerms.includes('attendance-manage') || userPerms.includes('attendance-delete'))
+  //                 ? `<button class="btn btn-sm btn-primary" onclick="updateAttendance(${a.id})">Update</button> &nbsp;` +  `<button class="btn btn-sm btn-danger" onclick="deleteAttendance(${a.id})">Delete</button>`
+  //                 : ''}
+  //             </td>
 
-            </tr>`;
-        });
+  //           </tr>`;
+  //       });
 
-         // Initialize DataTable (destroy first if already exists)
-        if ($.fn.DataTable.isDataTable('#attendanceTable')) {
-          $('#attendanceTable').DataTable().destroy();
-        }
-        $('#attendanceTable').DataTable({
+  //        // Initialize DataTable (destroy first if already exists)
+  //       if ($.fn.DataTable.isDataTable('#attendanceTable')) {
+  //         $('#attendanceTable').DataTable().destroy();
+  //       }
+  //       $('#attendanceTable').DataTable({
+  //         responsive: true,
+  //         autoWidth: false,
+  //         pageLength: 10,
+  //         lengthChange: true,
+  //         ordering: true,
+  //         columnDefs: [
+  //           { targets: [4,6,8], orderable: false }
+  //         ]
+  //       }).draw();
+
+  //       // Decide Punch In / Punch Out button
+  //       checkPunchStatus(attendances);
+  //     })
+  //     .catch(err => console.error("Error loading attendances:", err));
+  // }
+
+  async function loadAttendances(userPerms = []) {
+  try {
+    const res = await api.get('/attendances');
+    const attendances = res.data.data;
+
+    const table = $.fn.DataTable.isDataTable('#attendanceTable')
+      ? $('#attendanceTable').DataTable()
+      : $('#attendanceTable').DataTable({
           responsive: true,
           autoWidth: false,
           pageLength: 10,
           lengthChange: true,
           ordering: true,
-          columnDefs: [
-            { targets: [4,6,8], orderable: false }
-          ]
+          columnDefs: [{ targets: [4,6,8], orderable: false }]
         });
 
-        // Decide Punch In / Punch Out button
-        checkPunchStatus(attendances);
-      })
-      .catch(err => console.error("Error loading attendances:", err));
+    table.clear();
+    table.rows.add(attendances.map(a => [
+      a.id,
+      a.user?.name ?? a.user_id,
+      a.date,
+      a.time_in ?? '',
+      a.in_photo_path 
+        ? `<img src="/storage/${a.in_photo_path}" width="60" onclick="previewPhoto('/storage/${a.in_photo_path}')">`
+        : 'No In Photo',
+      a.time_out ?? '',
+      a.out_photo_path 
+        ? `<img src="/storage/${a.out_photo_path}" width="60" onclick="previewPhoto('/storage/${a.out_photo_path}')">`
+        : 'No Out Photo',
+      a.status ?? 'Present',
+      (userPerms.includes('attendance-update') || userPerms.includes('attendance-manage') || userPerms.includes('attendance-delete'))
+        ? `<button class="btn btn-sm btn-primary mr-1" onclick="updateAttendance(${a.id})">Update</button>
+           <button class="btn btn-sm btn-danger" onclick="deleteAttendance(${a.id})">Delete</button>`
+        : ''
+    ]));
+    table.draw();
+
+    checkPunchStatus(attendances);
+  } catch (err) {
+    console.error("Error loading attendances:", err);
   }
+}
+
+
+
 
   window.previewPhoto = function(url) {
     Swal.fire({
@@ -267,13 +310,13 @@
 
   window.openCreateModal = function() {
     document.getElementById('editId').value = '';
-    document.getElementById('in_photo').value = '';
-    document.getElementById('out_photo').value = '';
-    document.getElementById('inPhotoBlock').style.display = 'block';
-    document.getElementById('outPhotoBlock').style.display = 'none';
-    $('#attendanceEditModal').modal('show');
+    document.getElementById('in_photo_employee').value = '';
+    document.getElementById('out_photo_employee').value = '';
+    document.getElementById('inPhotoEmployeeBlock').style.display = 'block';
+    document.getElementById('outPhotoEmployeeBlock').style.display = 'none';
+    $('#attendanceEmployeeModal').modal('show');
 
-    document.getElementById('attendanceForm').onsubmit = function(e) {
+    document.getElementById('attendanceEmployeeForm').onsubmit = function(e) {
       e.preventDefault();
       punchIn();
     };
@@ -282,12 +325,12 @@
   window.punchIn = async function() {
     try {
       const formData = new FormData();
-      const photo = document.getElementById('in_photo').files[0];
+      const photo = document.getElementById('in_photo_employee').files[0];
       if (photo) formData.append('in_photo', photo);
 
       const res = await api.post('/attendances/punch-in', formData);
-      $('#attendanceModal').modal('hide');
-      await loadAttendances();
+      $('#attendanceEmployeeModal').modal('hide');
+      await loadAttendances(window.userPerms);
       
       // ✅ Refresh sidebar immediately
       await refreshSidebar();
@@ -299,22 +342,23 @@
   }
 
   window.punchOut = async function(id) {
-    document.getElementById('inPhotoBlock').style.display = 'none';
-    document.getElementById('outPhotoBlock').style.display = 'block';
-    $('#attendanceModal').modal('show');
+    document.getElementById('inPhotoEmployeeBlock').style.display = 'none';
+    document.getElementById('outPhotoEmployeeBlock').style.display = 'block';
+    $('#attendanceEmployeeModal').modal('show');
 
-    document.getElementById('attendanceForm').onsubmit = async function(e) {
+    document.getElementById('attendanceEmployeeForm').onsubmit = async function(e) {
       e.preventDefault();
       try {
         const formData = new FormData();
-        const photo = document.getElementById('out_photo').files[0];
+        const photo = document.getElementById('out_photo_employee').files[0];
         if (photo) formData.append('out_photo', photo);
 
         const res = await api.post(`/attendances/${id}/punch-out`, formData);
-        $('#attendanceModal').modal('hide');
+        $('#attendanceEmployeeModal').modal('hide');
         await loadAttendances();
-      // ✅ Refresh sidebar immediately
-      await refreshSidebar();
+
+        // ✅ Refresh sidebar immediately
+        await refreshSidebar();
 
         Swal.fire({ toast:true, position:'top-end', icon:'success', title:res.data.message, showConfirmButton:false, timer:3000 });
       } catch (err) {
@@ -323,8 +367,8 @@
     };
   }
 
-  window.deleteAttendance = function(id) {
-    Swal.fire({
+  window.deleteAttendance = async function(id) {
+    const result = await Swal.fire({
       title: 'Are you sure?',
       text: 'This will delete the attendance record',
       icon: 'warning',
@@ -332,14 +376,37 @@
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        api.delete(`/attendances/${id}`)
-          .then(() => loadAttendances())
-          .catch(err => console.error("Error deleting attendance:", err));
-      }
     });
-  }
+
+    if (result.isConfirmed) {
+      try {
+        await api.delete(`/attendances/${id}`);
+        // await loadAttendances();
+        // ✅ Pass userPerms 
+        await loadAttendances(window.userPerms);
+        await refreshSidebar();
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Attendance deleted successfully!',
+          showConfirmButton: false,
+          timer: 3000
+        });
+      } catch (err) {
+        console.error("Error deleting attendance:", err);
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to delete attendance',
+          showConfirmButton: false,
+          timer: 3000
+        });
+      }
+    }
+  };
+
 
   function formatTimeForInput(timeStr) {
     if (!timeStr) return '';
@@ -365,7 +432,7 @@ window.updateAttendance = async function(id) {
   
 
     // Fill fields
-    document.getElementById('editId').value = record.id;
+    document.getElementById('recordId').value = record.id;
     document.getElementById('date').value = formatDateForInput(record.date);
     // Time fix (HH:MM:SS → HH:MM)
     document.getElementById('time_in').value = formatTimeForInput(record.time_in);
@@ -407,7 +474,8 @@ window.updateAttendance = async function(id) {
 
 
       $('#attendanceEditModal').modal('hide');
-      await loadAttendances();
+
+      await loadAttendances(window.userPerms);
       await refreshSidebar();
 
       Swal.fire({
