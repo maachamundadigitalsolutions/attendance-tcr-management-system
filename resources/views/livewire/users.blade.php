@@ -248,7 +248,7 @@
   // 👉 Initialize DataTable
   function initUsersTable() {
     if ($.fn.DataTable.isDataTable('#usersTable')) {
-      $('#usersTable').DataTable().clear().destroy();
+      $('#usersTable').DataTable().destroy();
     }
 
     usersTable = $("#usersTable").DataTable({
@@ -260,6 +260,7 @@
       ordering: true,
       info: true,
       pageLength: 10,
+      dom: 'Bfrtip',
       buttons: [
         { extend: 'copy', className: 'btn btn-secondary btn-sm' },
         { extend: 'csv', className: 'btn btn-info btn-sm' },
@@ -269,10 +270,15 @@
         { extend: 'colvis', className: 'btn btn-warning btn-sm' }
       ]
     });
-    usersTable.buttons().container().appendTo('#usersTable_wrapper .col-md-6:eq(0)');
+
+    // check wrapper exists before append
+    if ($('#usersTable_wrapper .col-md-6:eq(0)').length) {
+      usersTable.buttons().container().appendTo('#usersTable_wrapper .col-md-6:eq(0)');
+    }
 
     reloadUsers();
   }
+
 
   // 👉 Reload users
   function reloadUsers() {
@@ -405,7 +411,11 @@
   });
 
   document.addEventListener('DOMContentLoaded', initUsersTable);
-  document.addEventListener('livewire:navigated', initUsersTable);
+  // document.addEventListener('livewire:navigated', initUsersTable);
+  document.addEventListener('livewire:navigated', () => {
+  setTimeout(initUsersTable, 100);
+});
+
 
 })();
 </script>
