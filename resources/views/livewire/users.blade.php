@@ -159,6 +159,7 @@
 <script>
 (function () {
   let usersTable;
+   if (!window.location.pathname.includes('user')) return;
 
   // 👉 Load roles dropdown
   function loadRolesDropdown(selectedId = '') {

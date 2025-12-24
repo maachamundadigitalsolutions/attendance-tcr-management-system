@@ -141,10 +141,6 @@
 
 @push('scripts')
 <!-- DataTables & Plugins -->
-<script src="{{ asset('plugins/datatables/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/dataTables.responsive.min.js') }}"></script>
-<script src="{{ asset('plugins/datatables-responsive/js/responsive.bootstrap4.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
@@ -195,67 +191,12 @@
   }
 
 
-
-  // function loadAttendances(userPerms = []) {
-  //   api.get('/attendances')
-  //     .then(res => {
-  //       const attendances = res.data.data;
-  //       const tbody = document.getElementById('attendance-table');
-  //       if (!tbody) return;
-
-  //       tbody.innerHTML = ''; // clear old rows
-  //       attendances.forEach(a => {
-  //         tbody.innerHTML += `
-  //           <tr>
-  //             <td>${a.id}</td>
-  //             <td>${a.user?.name ?? a.user_id}</td>
-  //             <td>${a.date}</td>
-  //             <td>${a.time_in ?? ''}</td>
-  //             <td>${a.in_photo_path 
-  //               ? `<img src="/storage/${a.in_photo_path}" width="60" style="cursor:pointer" onclick="previewPhoto('/storage/${a.in_photo_path}')">`
-  //               : 'No In Photo'}
-  //             </td>
-  //             <td>${a.time_out ?? ''}</td>
-  //             <td>${a.out_photo_path 
-  //               ? `<img src="/storage/${a.out_photo_path}" width="60" style="cursor:pointer" onclick="previewPhoto('/storage/${a.out_photo_path}')">`
-  //               : 'No Out Photo'}
-  //             </td>
-  //             <td>${a.status ?? 'Present'}</td>
-  //             <td>
-  //               ${(userPerms.includes('attendance-update') || userPerms.includes('attendance-manage') || userPerms.includes('attendance-delete'))
-  //                 ? `<button class="btn btn-sm btn-primary" onclick="updateAttendance(${a.id})">Update</button> &nbsp;` +  `<button class="btn btn-sm btn-danger" onclick="deleteAttendance(${a.id})">Delete</button>`
-  //                 : ''}
-  //             </td>
-
-  //           </tr>`;
-  //       });
-
-  //        // Initialize DataTable (destroy first if already exists)
-  //       if ($.fn.DataTable.isDataTable('#attendanceTable')) {
-  //         $('#attendanceTable').DataTable().destroy();
-  //       }
-  //       $('#attendanceTable').DataTable({
-  //         responsive: true,
-  //         autoWidth: false,
-  //         pageLength: 10,
-  //         lengthChange: true,
-  //         ordering: true,
-  //         columnDefs: [
-  //           { targets: [4,6,8], orderable: false }
-  //         ]
-  //       }).draw();
-
-  //       // Decide Punch In / Punch Out button
-  //       checkPunchStatus(attendances);
-  //     })
-  //     .catch(err => console.error("Error loading attendances:", err));
-  // }
-
-  async function loadAttendances(userPerms = []) {
+ async function loadAttendances(userPerms = []) {
   try {
     const res = await api.get('/attendances');
     const attendances = res.data.data;
 
+    // Initialize or get existing DataTable
     const table = $.fn.DataTable.isDataTable('#attendanceTable')
       ? $('#attendanceTable').DataTable()
       : $('#attendanceTable').DataTable({
@@ -264,9 +205,18 @@
           pageLength: 10,
           lengthChange: true,
           ordering: true,
-          columnDefs: [{ targets: [4,6,8], orderable: false }]
+          dom: 'Bfrtip', // this enables buttons
+          buttons: [
+            { extend: 'excelHtml5', text: '📊 Excel', className: 'btn btn-success btn-sm' },
+            { extend: 'pdfHtml5', text: '📄 PDF', className: 'btn btn-danger btn-sm', orientation: 'landscape' },
+            { extend: 'print', text: '🖨 Print', className: 'btn btn-info btn-sm' }
+          ],
+          columnDefs: [
+            { targets: [4, 6, 8], orderable: false } // Disable ordering for images & actions
+          ]
         });
 
+    // Clear old data and add new
     table.clear();
     table.rows.add(attendances.map(a => [
       a.id,
@@ -275,11 +225,11 @@
       a.time_in ?? '',
       a.in_photo_path 
         ? `<img src="/storage/${a.in_photo_path}" width="60" onclick="previewPhoto('/storage/${a.in_photo_path}')">`
-        : 'No In Photo',
+        : '-',
       a.time_out ?? '',
       a.out_photo_path 
         ? `<img src="/storage/${a.out_photo_path}" width="60" onclick="previewPhoto('/storage/${a.out_photo_path}')">`
-        : 'No Out Photo',
+        : '-',
       a.status ?? 'Present',
       (userPerms.includes('attendance-update') || userPerms.includes('attendance-manage') || userPerms.includes('attendance-delete'))
         ? `<button class="btn btn-sm btn-primary mr-1" onclick="updateAttendance(${a.id})">Update</button>
@@ -293,6 +243,7 @@
     console.error("Error loading attendances:", err);
   }
 }
+
 
 
 

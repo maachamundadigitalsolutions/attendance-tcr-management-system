@@ -268,7 +268,15 @@
         ordering: true,
         info: true,
         pageLength: 10,
-        buttons: ["copy", "csv", "excel", "pdf", "print", "colvis"],
+        dom: 'Bfrtip',
+        buttons: [
+          { extend: 'copy', className: 'btn btn-secondary btn-sm' },
+          { extend: 'csv', className: 'btn btn-info btn-sm' },
+          { extend: 'excel', className: 'btn btn-success btn-sm', exportOptions: { columns: ':not(:last-child)' } },
+          { extend: 'pdf', className: 'btn btn-danger btn-sm', exportOptions: { columns: ':not(:last-child)' } },
+          { extend: 'print', className: 'btn btn-primary btn-sm', exportOptions: { columns: ':not(:last-child)' } },
+          { extend: 'colvis', className: 'btn btn-warning btn-sm' }
+        ],
         drawCallback: function () {
           bindTcrEvents(this.api());
         }
