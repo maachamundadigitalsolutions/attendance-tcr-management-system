@@ -21,6 +21,8 @@ Route::get('/user-management', Users::class)->name('users');
 Route::get('/roles-permissions', Roles::class)->name('roles');
 Route::get('/attendances-management', Attendances::class)->name('attendances');
 Route::get('/tcr-management', TCR::class)->name('tcr');
+Route::get('/tcr-verify', TCR::class)->name('tcr');
+Route::get('/tcr-assign', TCR::class)->name('tcr');
 
 
 

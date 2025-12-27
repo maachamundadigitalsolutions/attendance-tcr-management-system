@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -20,43 +21,45 @@ class UserController extends Controller
     // Create new user (user_id + password required)
     public function store(Request $request)
     {
+        
         $validated = $request->validate([
             'user_id'  => 'required|digits_between:5,15|unique:users,user_id',
             'name'     => 'required|string|min:3',
             'address'     => 'required|string|min:3',
-            'email'     => 'required|email|unique:email',
+            'email' => 'required|email|unique:users,email',
             'phone'     => 'required|string|min:10',
-            'shirt_size'     => 'required|string|min:2',
-            'tshirt_size'     => 'required|string|min:2',
-            'trouser_size'     => 'required|string|min:2',
-            'jeans_size'     => 'required|string|min:2',
+            'shirt_size'     => 'required|string|min:1',
+            'tshirt_size'     => 'required|string|min:1',
+            'trouser_size'     => 'required|string|min:1',
+            'jeans_size'     => 'required|string|min:1',
             'dob'     => 'required|string|min:2',
             'doj'     => 'required|string|min:2',
             'education'     => 'required|string|min:2',
             'total_exp'     => 'required|string|min:2',
-            'summary_exp'     => 'required|string|min:2',
+            'summary_exp'     => 'required|string|min:1',
             'emergency_contact'     => 'required|string|min:2',
             'product'     => 'required|string|min:2',
             'password' => 'required|min:6',
             'role' => 'required|exists:roles,id',
         ]);
+        // dd($request);
 
         $user = User::create([
             'name'     => $validated['name'],
             'user_id'  => $validated['user_id'],
-            'email'    => null,
-            'phone'    => null,
-            'shirt_size'    => null,
-            'tshirt_size'    => null,
-            'trouser_size'    => null,
-            'jeans_size'    => null,
-            'dob'    => null,
-            'doj'    => null,
-            'education'    => null,
-            'total_exp'    => null,
-            'summary_exp'    => null,
-            'emergency_contact'    => null,
-            'product'    => null,
+            'email'    =>  $validated['email'],
+            'phone'    => $validated['phone'],
+            'shirt_size'    => $validated['shirt_size'],
+            'tshirt_size'    => $validated['tshirt_size'],
+            'trouser_size'    => $validated['trouser_size'],
+            'jeans_size'    => $validated['jeans_size'],
+            'dob'    => $validated['dob'],
+            'doj'    => $validated['doj'],
+            'education'    => $validated['education'],
+            'total_exp'    => $validated['total_exp'],
+            'summary_exp'    => $validated['summary_exp'],
+            'emergency_contact'    => $validated['emergency_contact'],
+            'product'    => $validated['product'],
             'password' => Hash::make($validated['password']),
         ]);
         
@@ -87,7 +90,7 @@ class UserController extends Controller
                 'name'              => 'required|string|min:3',
                 'address'           => 'nullable|string|max:255',
                 'phone'             => 'nullable|string|max:20',
-                'email'             => 'nullable|email|max:255',
+                'email' => [ 'required', 'email', Rule::unique('users', 'email')->ignore($user->id), ],
                 'dob'               => 'nullable|date',
                 'doj'               => 'nullable|date',
                 'education'         => 'nullable|string|max:255',
@@ -106,6 +109,10 @@ class UserController extends Controller
                 'email'             => $validated['email'] ?? $user->email,
                 'dob'               => $validated['dob'] ?? $user->dob,
                 'doj'               => $validated['doj'] ?? $user->doj,
+                'shirt_size'        => $validated['shirt_size'] ?? $user->shirt_size,
+                'tshirt_size'       => $validated['tshirt_size'] ?? $user->tshirt_size,
+                'trouser_size'      => $validated['trouser_size'] ?? $user->trouser_size,
+                'jeans_size'        => $validated['jeans_size'] ?? $user->jeans_size,
                 'education'         => $validated['education'] ?? $user->education,
                 'total_exp'         => $validated['total_exp'] ?? $user->total_exp,
                 'summary_exp'       => $validated['summary_exp'] ?? $user->summary_exp,

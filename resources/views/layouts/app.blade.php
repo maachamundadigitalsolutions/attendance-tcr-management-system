@@ -90,50 +90,111 @@
   window.userRoles = [];
   window.userPerms = [];
 
-  function updateSidebarLogic(res) {
-    window.userRoles = res.data.roles || [];
-    window.userPerms = (res.data.permissions || []).map(p => p.name);
+  // function updateSidebarLogic(res) {
+  //   window.userRoles = res.data.roles || [];
+  //   window.userPerms = (res.data.permissions || []).map(p => p.name);
 
-    const attendance = res.data.attendance_today || {};
-    const punchedIn = attendance.punched_in;
-    const punchedOut = attendance.punched_out;
+  //   const attendance = res.data.attendance_today || {};
+  //   const punchedIn = attendance.punched_in;
+  //   const punchedOut = attendance.punched_out;
 
-    const currentPath = window.location.pathname;
-    const attendancePath = "{{ route('attendances') }}";
+  //   const currentPath = window.location.pathname;
+  //   const attendancePath = "{{ route('attendances') }}";
 
-    if (!userRoles.includes('admin')) {
-      if (!punchedIn || punchedOut) {
-        if (!currentPath.includes('/attendances')) {
-          window.location.href = attendancePath;
-          return;
-        }
-      }
-    }
+  //   if (!userRoles.includes('admin')) {
+  //     if (!punchedIn || punchedOut) {
+  //       if (!currentPath.includes('/attendances')) {
+  //         window.location.href = attendancePath;
+  //         return;
+  //       }
+  //     }
+  //   }
+
+  //   document.querySelectorAll('.nav-item').forEach(el => {
+  //     const roleAttr = el.getAttribute('data-role');
+  //     const permAttr = el.getAttribute('data-permission');
+  //     const isAttendance = el.classList.contains('attendance-nav');
+
+  //     let roleOk = true;
+  //     if (roleAttr) {
+  //       roleOk = roleAttr.split(',').some(r => userRoles.includes(r.trim()));
+  //     }
+
+  //     let permOk = true;
+  //     if (permAttr) {
+  //       permOk = permAttr.split(',').some(p => userPerms.includes(p.trim()));
+  //     }
+
+  //     if (isAttendance || userRoles.includes('admin')) {
+  //       el.style.display = 'block';
+  //     } else {
+  //       el.style.display = (punchedIn && !punchedOut && roleOk && permOk)
+  //         ? 'block'
+  //         : 'none';
+  //     }
+  //   });
+
+  // }
+
+
+function updateSidebarLogic(res) {
+    const userRoles = res.data.roles || [];
+    const userPerms = (res.data.permissions || []).map(p => p.name);
 
     document.querySelectorAll('.nav-item').forEach(el => {
-      const roleAttr = el.getAttribute('data-role');
-      const permAttr = el.getAttribute('data-permission');
-      const isAttendance = el.classList.contains('attendance-nav');
+        const roleAttr = el.getAttribute('data-role');
+        const permAttr = el.getAttribute('data-permission');
 
-      let roleOk = true;
-      if (roleAttr) {
-        roleOk = roleAttr.split(',').some(r => userRoles.includes(r.trim()));
-      }
+        const roleOk = !roleAttr || roleAttr.split(',').some(r => userRoles.includes(r.trim()));
+        const permOk = !permAttr || permAttr.split(',').some(p => userPerms.includes(p.trim()));
 
-      let permOk = true;
-      if (permAttr) {
-        permOk = permAttr.split(',').some(p => userPerms.includes(p.trim()));
-      }
-
-      if (isAttendance || userRoles.includes('admin')) {
-        el.style.display = 'block';
-      } else {
-        el.style.display = (punchedIn && !punchedOut && roleOk && permOk)
-          ? 'block'
-          : 'none';
-      }
+        if(roleOk && permOk){
+            el.classList.remove('d-none');
+        } else {
+            el.classList.add('d-none');
+        }
     });
-  }
+
+    // Open treeview if any child is visible
+    document.querySelectorAll('.nav-item.has-treeview').forEach(tree => {
+        const anyVisible = Array.from(tree.querySelectorAll('.nav-treeview .nav-item'))
+            .some(item => !item.classList.contains('d-none'));
+
+        if(anyVisible){
+            tree.classList.add('menu-open');
+            tree.querySelector('.tree-toggle').classList.add('active');
+        } else {
+            tree.classList.remove('menu-open');
+            tree.querySelector('.tree-toggle').classList.remove('active');
+        }
+    });
+
+    // Highlight active child page
+    const path = window.location.pathname;
+    document.querySelectorAll('.tree-child').forEach(link => {
+        if(link.getAttribute('href') === path){
+            link.classList.add('active');
+            const parentTree = link.closest('.has-treeview');
+            if(parentTree){
+                parentTree.classList.add('menu-open');
+                parentTree.querySelector('.tree-toggle').classList.add('active');
+            }
+        } else {
+            link.classList.remove('active');
+        }
+    });
+}
+
+  document.addEventListener('click', function(e){
+      if(e.target.closest('.tree-toggle')){
+          const tree = e.target.closest('.has-treeview');
+          tree.classList.toggle('menu-open');
+          tree.querySelector('.tree-toggle').classList.toggle('active');
+      }
+  });
+
+
+
 
   async function refreshSidebar() {
     try {

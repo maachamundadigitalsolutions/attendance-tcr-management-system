@@ -33,7 +33,7 @@
         <div class="modal-content">
           <form id="attendanceEmployeeForm">
             <div class="modal-header">
-              <h5 class="modal-title">Attendance</h5>
+              <h4 class="modal-title">Attendance</h4>
               <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
